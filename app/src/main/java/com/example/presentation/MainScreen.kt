@@ -46,6 +46,7 @@ fun MainScreen(viewModel: CryptoViewModel) {
     val selectedEvent by viewModel.selectedEvent.collectAsState()
     val adsEnabled by viewModel.adsEnabled.collectAsState()
     val adsMargin by viewModel.adsMargin.collectAsState()
+    val language by viewModel.language.collectAsState()
 
     Scaffold(
         topBar = {
@@ -62,7 +63,7 @@ fun MainScreen(viewModel: CryptoViewModel) {
                             )
                             Spacer(modifier = Modifier.width(10.dp))
                             Text(
-                                text = "CRYPTO NEWS",
+                                text = Translations.getString("app_title", language),
                                 color = CryptoGold,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = FontFamily.Monospace,
@@ -92,7 +93,7 @@ fun MainScreen(viewModel: CryptoViewModel) {
                 NavigationBarItem(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    label = { Text("News", fontWeight = FontWeight.Medium) },
+                    label = { Text(Translations.getString("tab_news", language), fontWeight = FontWeight.Medium) },
                     icon = {
                         Icon(
                             imageVector = if (selectedTab == 0) Icons.Filled.Feed else Icons.Outlined.Feed,
@@ -111,7 +112,7 @@ fun MainScreen(viewModel: CryptoViewModel) {
                 NavigationBarItem(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    label = { Text("Calendar", fontWeight = FontWeight.Medium) },
+                    label = { Text(Translations.getString("tab_calendar", language), fontWeight = FontWeight.Medium) },
                     icon = {
                         Icon(
                             imageVector = if (selectedTab == 1) Icons.Filled.CalendarMonth else Icons.Outlined.CalendarMonth,
@@ -130,7 +131,7 @@ fun MainScreen(viewModel: CryptoViewModel) {
                 NavigationBarItem(
                     selected = selectedTab == 2,
                     onClick = { selectedTab = 2 },
-                    label = { Text("Watchlist", fontWeight = FontWeight.Medium) },
+                    label = { Text(Translations.getString("tab_watchlist", language), fontWeight = FontWeight.Medium) },
                     icon = {
                         Icon(
                             imageVector = if (selectedTab == 2) Icons.Filled.Star else Icons.Outlined.StarOutline,
@@ -149,7 +150,7 @@ fun MainScreen(viewModel: CryptoViewModel) {
                 NavigationBarItem(
                     selected = selectedTab == 3,
                     onClick = { selectedTab = 3 },
-                    label = { Text("Settings", fontWeight = FontWeight.Medium) },
+                    label = { Text(Translations.getString("tab_settings", language), fontWeight = FontWeight.Medium) },
                     icon = {
                         Icon(
                             imageVector = if (selectedTab == 3) Icons.Filled.Settings else Icons.Outlined.Settings,
@@ -197,7 +198,7 @@ fun MainScreen(viewModel: CryptoViewModel) {
             }
 
             if (adsEnabled) {
-                AdBanner(marginDp = adsMargin)
+                AdBanner(viewModel = viewModel, marginDp = adsMargin)
             }
         }
     }
@@ -261,6 +262,7 @@ fun NewsTab(viewModel: CryptoViewModel) {
     val searchVal by viewModel.newsSearchQuery.collectAsState()
     val selectedCoinFilter by viewModel.newsFilterCoin.collectAsState()
     val context = LocalContext.current
+    val language by viewModel.language.collectAsState()
 
     val coins = listOf("All", "BTC", "ETH", "SOL", "ADA", "BNB")
 
@@ -269,7 +271,7 @@ fun NewsTab(viewModel: CryptoViewModel) {
         TextField(
             value = searchVal,
             onValueChange = { viewModel.setNewsSearch(it) },
-            placeholder = { Text("Tìm kiếm tin tức crypto...", color = CryptoTextSecondary) },
+            placeholder = { Text(Translations.getString("search_placeholder", language), color = CryptoTextSecondary) },
             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = "Search", tint = CryptoGold) },
             trailingIcon = {
                 if (searchVal.isNotEmpty()) {
@@ -309,7 +311,12 @@ fun NewsTab(viewModel: CryptoViewModel) {
                     onClick = {
                         viewModel.setNewsCoinFilter(if (coin == "All") null else coin)
                     },
-                    label = { Text(coin, color = if (isSelected) CryptoDarkBg else CryptoTextPrimary) },
+                    label = { 
+                        val displayLabel = if (coin == "All") {
+                            if (language == "vi") "Tất cả" else "All"
+                        } else coin
+                        Text(displayLabel, color = if (isSelected) CryptoDarkBg else CryptoTextPrimary) 
+                    },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = CryptoGold,
                         containerColor = CryptoSurface
@@ -336,7 +343,7 @@ fun NewsTab(viewModel: CryptoViewModel) {
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "Không tìm thấy tin tức nào.\nHãy kiểm tra kết nối hoặc thử tìm kiếm khác.",
+                        text = Translations.getString("news_empty_desc", language),
                         color = CryptoTextSecondary,
                         textAlign = TextAlign.Center,
                         fontSize = 14.sp
@@ -346,7 +353,7 @@ fun NewsTab(viewModel: CryptoViewModel) {
                         onClick = { viewModel.refreshNewsFeed() },
                         colors = ButtonDefaults.buttonColors(containerColor = CryptoGold)
                     ) {
-                        Text("Tải Lại Tin Tức", color = CryptoDarkBg)
+                        Text(Translations.getString("reload_news", language), color = CryptoDarkBg)
                     }
                 }
             }
@@ -436,6 +443,7 @@ fun CalendarTab(viewModel: CryptoViewModel) {
     val events by viewModel.marketEvents.collectAsState()
     val selectedType by viewModel.eventFilterType.collectAsState()
     val selectedImpact by viewModel.eventFilterImpact.collectAsState()
+    val language by viewModel.language.collectAsState()
 
     val types = listOf("All", "Airdrops" to "AIRDROP", "Fed/FOMC" to "FED_MEETING", "Macro" to "ECONOMIC")
 
@@ -452,10 +460,19 @@ fun CalendarTab(viewModel: CryptoViewModel) {
                 val label = if (item is Pair<*, *>) item.first as String else item as String
                 val value = if (item is Pair<*, *>) item.second as String else null
                 val isSelected = selectedType == value
+                
+                val displayLabel = when (label) {
+                    "All" -> if (language == "vi") "Tất cả" else "All"
+                    "Airdrops" -> Translations.getString("airdrop", language)
+                    "Fed/FOMC" -> Translations.getString("fed_meeting", language)
+                    "Macro" -> Translations.getString("economic_data", language)
+                    else -> label
+                }
+
                 FilterChip(
                     selected = isSelected,
                     onClick = { viewModel.setEventTypeFilter(value) },
-                    label = { Text(label, color = if (isSelected) CryptoDarkBg else CryptoTextPrimary) },
+                    label = { Text(displayLabel, color = if (isSelected) CryptoDarkBg else CryptoTextPrimary) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = CryptoGold,
                         containerColor = CryptoSurface
@@ -472,7 +489,12 @@ fun CalendarTab(viewModel: CryptoViewModel) {
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Impact:", color = CryptoTextSecondary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = "${Translations.getString("impact", language)}:",
+                color = CryptoTextSecondary,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
+            )
             ImpactLevel.values().forEach { impact ->
                 val isSelected = selectedImpact == impact
                 val chipColor = when (impact) {
@@ -480,12 +502,17 @@ fun CalendarTab(viewModel: CryptoViewModel) {
                     ImpactLevel.MEDIUM -> ImpactMedium
                     ImpactLevel.LOW -> ImpactLow
                 }
+                val impactDisplay = when (impact) {
+                    ImpactLevel.HIGH -> Translations.getString("high", language)
+                    ImpactLevel.MEDIUM -> Translations.getString("medium", language)
+                    ImpactLevel.LOW -> Translations.getString("low", language)
+                }
                 FilterChip(
                     selected = isSelected,
                     onClick = { viewModel.setEventImpactFilter(if (isSelected) null else impact) },
                     label = {
                         Text(
-                            text = impact.name,
+                            text = impactDisplay.uppercase(),
                             color = if (isSelected) CryptoDarkBg else chipColor,
                             fontWeight = FontWeight.Bold,
                             fontSize = 11.sp
@@ -517,7 +544,7 @@ fun CalendarTab(viewModel: CryptoViewModel) {
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "Không có sự kiện nào khớp bộ lọc.",
+                        text = if (language == "vi") "Không có sự kiện nào khớp bộ lọc." else "No events match the active filters.",
                         color = CryptoTextSecondary,
                         fontSize = 14.sp
                     )
@@ -547,6 +574,7 @@ fun CalendarTab(viewModel: CryptoViewModel) {
 fun WatchlistTab(viewModel: CryptoViewModel) {
     val watchlistItems by viewModel.watchlistItems.collectAsState()
     val events by viewModel.marketEvents.collectAsState()
+    val language by viewModel.language.collectAsState()
 
     // Filter events that match the watchlist items
     val watchlistedEvents = events.filter { event ->
@@ -555,7 +583,7 @@ fun WatchlistTab(viewModel: CryptoViewModel) {
 
     Column(modifier = Modifier.fillMaxSize()) {
         Text(
-            text = "SỰ KIỆN THEO DÕI (${watchlistedEvents.size})",
+            text = "${Translations.getString("tab_watchlist", language).uppercase()} (${watchlistedEvents.size})",
             color = CryptoGold,
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace,
@@ -582,14 +610,14 @@ fun WatchlistTab(viewModel: CryptoViewModel) {
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "Watchlist của bạn đang trống.",
+                        text = Translations.getString("watchlist_empty", language),
                         color = CryptoTextPrimary,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "Nhấn vào ngôi sao hoặc nút 'Theo dõi' ở lịch sự kiện để bật cảnh báo nhắc nhở 30 phút trước khi bắt đầu.",
+                        text = Translations.getString("watchlist_empty_desc", language),
                         color = CryptoTextSecondary,
                         textAlign = TextAlign.Center,
                         fontSize = 13.sp
@@ -619,7 +647,8 @@ fun WatchlistTab(viewModel: CryptoViewModel) {
 @Composable
 fun SettingsTab(viewModel: CryptoViewModel) {
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
-    val gmtPlus7Enabled by viewModel.gmtPlus7Enabled.collectAsState()
+    val selectedTimezone by viewModel.selectedTimezone.collectAsState()
+    val language by viewModel.language.collectAsState()
     val adsEnabled by viewModel.adsEnabled.collectAsState()
     val adsMargin by viewModel.adsMargin.collectAsState()
     val context = LocalContext.current
@@ -631,7 +660,7 @@ fun SettingsTab(viewModel: CryptoViewModel) {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "CẤU HÌNH HỆ THỐNG",
+            text = Translations.getString("system_config", language),
             color = CryptoGold,
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace,
@@ -652,13 +681,13 @@ fun SettingsTab(viewModel: CryptoViewModel) {
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Thông báo nhắc nhở",
+                        text = Translations.getString("notifications", language),
                         color = CryptoTextPrimary,
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp
                     )
                     Text(
-                        text = "Nhận cảnh báo đẩy 30 phút trước khi diễn ra các sự kiện trong Watchlist.",
+                        text = Translations.getString("notifications_desc", language),
                         color = CryptoTextSecondary,
                         fontSize = 12.sp
                     )
@@ -675,107 +704,106 @@ fun SettingsTab(viewModel: CryptoViewModel) {
             }
         }
 
-        // Timezone Toggle Row
+        // Language Selection Row
         Card(
             colors = CardDefaults.cardColors(containerColor = CryptoSurface),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Múi giờ GMT+7",
-                        color = CryptoTextPrimary,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp
-                    )
-                    Text(
-                        text = if (gmtPlus7Enabled) "Hiện đang hiển thị múi giờ Việt Nam (GMT+7)." else "Hiện đang hiển thị múi giờ Hệ thống/UTC.",
-                        color = CryptoTextSecondary,
-                        fontSize = 12.sp
-                    )
-                }
-                Switch(
-                    checked = gmtPlus7Enabled,
-                    onCheckedChange = { viewModel.toggleGmtPlus7(it) },
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = CryptoDarkBg,
-                        checkedTrackColor = CryptoGold
-                    ),
-                    modifier = Modifier.testTag("toggle_timezone")
+                Text(
+                    text = Translations.getString("language_setting", language),
+                    color = CryptoTextPrimary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp
                 )
+                Text(
+                    text = Translations.getString("language_setting_desc", language),
+                    color = CryptoTextSecondary,
+                    fontSize = 12.sp
+                )
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    listOf("en", "vi").forEach { lang ->
+                        val isSelected = language == lang
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { viewModel.setLanguage(lang) },
+                            label = {
+                                Text(
+                                    text = if (lang == "en") Translations.getString("english", language) else Translations.getString("vietnamese", language),
+                                    color = if (isSelected) CryptoDarkBg else CryptoTextPrimary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = CryptoGold,
+                                containerColor = CryptoSurfaceVariant
+                            ),
+                            modifier = Modifier.weight(1f).testTag("lang_chip_$lang")
+                        )
+                    }
+                }
             }
         }
 
-        // Ads & Spacing Configuration Card
+        // Expanded Timezone Selection Row
         Card(
             colors = CardDefaults.cardColors(containerColor = CryptoSurface),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = Translations.getString("timezone", language),
+                    color = CryptoTextPrimary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp
+                )
+                Text(
+                    text = Translations.getString("timezone_desc", language),
+                    color = CryptoTextSecondary,
+                    fontSize = 12.sp
+                )
+                
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Bật quảng cáo tài trợ",
-                            color = CryptoTextPrimary,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp
-                        )
-                        Text(
-                            text = "Hiển thị các chiến dịch airdrop, tin tài trợ và quảng cáo ở chân trang.",
-                            color = CryptoTextSecondary,
-                            fontSize = 12.sp
+                    val zones = listOf("Local", "UTC", "GMT+7", "GMT+8", "GMT+9", "GMT-5")
+                    zones.forEach { tz ->
+                        val isSelected = selectedTimezone == tz
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { viewModel.setSelectedTimezone(tz) },
+                            label = {
+                                Text(
+                                    text = tz,
+                                    color = if (isSelected) CryptoDarkBg else CryptoTextPrimary,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 11.sp
+                                )
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = CryptoGold,
+                                containerColor = CryptoSurfaceVariant
+                            ),
+                            modifier = Modifier.testTag("timezone_chip_$tz")
                         )
                     }
-                    Switch(
-                        checked = adsEnabled,
-                        onCheckedChange = { viewModel.toggleAds(it) },
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = CryptoDarkBg,
-                            checkedTrackColor = CryptoGold
-                        ),
-                        modifier = Modifier.testTag("toggle_ads")
-                    )
-                }
-
-                if (adsEnabled) {
-                    Spacer(modifier = Modifier.height(14.dp))
-                    HorizontalDivider(color = CryptoSurfaceVariant)
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    Text(
-                        text = "Khoảng lề Ads Margin: ${adsMargin}dp",
-                        color = CryptoTextPrimary,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
-                    )
-                    Text(
-                        text = "Tùy chỉnh khoảng cách và độ lề ngang cho khung quảng cáo trong giao diện.",
-                        color = CryptoTextSecondary,
-                        fontSize = 11.sp
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Slider(
-                        value = adsMargin.toFloat(),
-                        onValueChange = { viewModel.setAdsMargin(it.toInt()) },
-                        valueRange = 4f..24f,
-                        steps = 4, // 4, 8, 12, 16, 20, 24
-                        colors = SliderDefaults.colors(
-                            thumbColor = CryptoGold,
-                            activeTrackColor = CryptoGold,
-                            inactiveTrackColor = CryptoSurfaceVariant
-                        ),
-                        modifier = Modifier.testTag("ads_margin_slider")
-                    )
                 }
             }
         }
@@ -787,14 +815,14 @@ fun SettingsTab(viewModel: CryptoViewModel) {
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "Dữ liệu & Đồng bộ",
+                    text = Translations.getString("db_sync", language),
                     color = CryptoTextPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Ứng dụng hoạt động theo cơ chế ngoại tuyến trước (offline-first). Bản tin tức và chỉ số vĩ mô được lưu cục bộ trong Room DB.",
+                    text = Translations.getString("db_sync_desc", language),
                     color = CryptoTextSecondary,
                     fontSize = 12.sp
                 )
@@ -808,7 +836,7 @@ fun SettingsTab(viewModel: CryptoViewModel) {
                 ) {
                     Icon(Icons.Filled.Sync, contentDescription = "Sync", tint = CryptoDarkBg)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Đồng Bộ Bản Tin Mới", color = CryptoDarkBg, fontWeight = FontWeight.Bold)
+                    Text(Translations.getString("sync_button", language), color = CryptoDarkBg, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -825,7 +853,7 @@ fun SettingsTab(viewModel: CryptoViewModel) {
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "API CONNECTIONS",
+                    text = Translations.getString("api_connections", language),
                     color = CryptoGold,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
@@ -851,7 +879,8 @@ fun EventCard(
     onClick: () -> Unit
 ) {
     val isWatchlisted = viewModel.isEventWatchlisted(event.id)
-    val gmtPlus7 by viewModel.gmtPlus7Enabled.collectAsState()
+    val selectedTimezone by viewModel.selectedTimezone.collectAsState()
+    val language by viewModel.language.collectAsState()
 
     val typeIcon = when (event) {
         is AirdropEvent -> Icons.Filled.CardGiftcard
@@ -869,6 +898,12 @@ fun EventCard(
         ImpactLevel.HIGH -> ImpactHigh
         ImpactLevel.MEDIUM -> ImpactMedium
         ImpactLevel.LOW -> ImpactLow
+    }
+
+    val impactDisplay = when (event.impact) {
+        ImpactLevel.HIGH -> Translations.getString("high", language)
+        ImpactLevel.MEDIUM -> Translations.getString("medium", language)
+        ImpactLevel.LOW -> Translations.getString("low", language)
     }
 
     Card(
@@ -893,9 +928,9 @@ fun EventCard(
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = when (event) {
-                            is AirdropEvent -> "AIRDROP"
-                            is FedMeetingEvent -> "FED MEETING"
-                            is EconomicDataEvent -> "ECONOMIC DATA"
+                            is AirdropEvent -> Translations.getString("airdrop", language).uppercase()
+                            is FedMeetingEvent -> Translations.getString("fed_meeting", language).uppercase()
+                            is EconomicDataEvent -> Translations.getString("economic_data", language).uppercase()
                         },
                         color = CryptoTextSecondary,
                         fontSize = 11.sp,
@@ -912,7 +947,7 @@ fun EventCard(
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
                         Text(
-                            text = "${event.impact.name} IMPACT",
+                            text = "${impactDisplay.uppercase()} ${Translations.getString("impact", language).uppercase()}",
                             color = impactColor,
                             fontSize = 9.sp,
                             fontWeight = FontWeight.Bold
@@ -951,12 +986,12 @@ fun EventCard(
             ) {
                 Column {
                     Text(
-                        text = "Thời gian:",
+                        text = "${Translations.getString("time", language)}:",
                         color = CryptoTextSecondary,
                         fontSize = 10.sp
                     )
                     Text(
-                        text = formatEventTime(event.timestamp, gmtPlus7),
+                        text = formatEventTime(event.timestamp, selectedTimezone),
                         color = CryptoTextPrimary,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium
@@ -964,14 +999,14 @@ fun EventCard(
                 }
 
                 // Countdown Timer component
-                CountdownTimer(targetTimeMs = event.timestamp)
+                CountdownTimer(targetTimeMs = event.timestamp, language = language)
             }
         }
     }
 }
 
 @Composable
-fun CountdownTimer(targetTimeMs: Long) {
+fun CountdownTimer(targetTimeMs: Long, language: String) {
     var timeLeftMs by remember { mutableStateOf(targetTimeMs - System.currentTimeMillis()) }
 
     LaunchedEffect(key1 = targetTimeMs) {
@@ -984,7 +1019,7 @@ fun CountdownTimer(targetTimeMs: Long) {
     val isOver = timeLeftMs <= 0
 
     val text = if (isOver) {
-        "Đã Diễn Ra"
+        if (language == "vi") "Đã Diễn Ra" else "Live/Ended"
     } else {
         val totalSecs = timeLeftMs / 1000
         val days = totalSecs / (24 * 3600)
@@ -993,7 +1028,9 @@ fun CountdownTimer(targetTimeMs: Long) {
         val secs = totalSecs % 60
 
         if (days > 0) {
-            "${days}d ${hours}h"
+            val dSuffix = Translations.getString("countdown_days", language)
+            val hSuffix = Translations.getString("countdown_hours", language)
+            "$days$dSuffix $hours$hSuffix"
         } else {
             String.format(Locale.US, "%02d:%02d:%02d", hours, mins, secs)
         }
@@ -1036,7 +1073,8 @@ fun EventDetailDialog(
 ) {
     val context = LocalContext.current
     val isWatchlisted = viewModel.isEventWatchlisted(event.id)
-    val gmtPlus7 by viewModel.gmtPlus7Enabled.collectAsState()
+    val selectedTimezone by viewModel.selectedTimezone.collectAsState()
+    val language by viewModel.language.collectAsState()
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
@@ -1058,7 +1096,7 @@ fun EventDetailDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "CHI TIẾT SỰ KIỆN",
+                        text = Translations.getString("event_details", language),
                         color = CryptoGold,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace,
@@ -1083,19 +1121,25 @@ fun EventDetailDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text("Mức độ ảnh hưởng:", color = CryptoTextSecondary, fontSize = 11.sp)
+                        Text(Translations.getString("impact_label", language), color = CryptoTextSecondary, fontSize = 11.sp)
+                        val impactColor = when (event.impact) {
+                            ImpactLevel.HIGH -> ImpactHigh
+                            ImpactLevel.MEDIUM -> ImpactMedium
+                            ImpactLevel.LOW -> ImpactLow
+                        }
+                        val impactDisplay = when (event.impact) {
+                            ImpactLevel.HIGH -> Translations.getString("high", language)
+                            ImpactLevel.MEDIUM -> Translations.getString("medium", language)
+                            ImpactLevel.LOW -> Translations.getString("low", language)
+                        }
                         Text(
-                            text = "${event.impact.name} IMPACT",
-                            color = when (event.impact) {
-                                ImpactLevel.HIGH -> ImpactHigh
-                                ImpactLevel.MEDIUM -> ImpactMedium
-                                ImpactLevel.LOW -> ImpactLow
-                            },
+                            text = "${impactDisplay.uppercase()} ${Translations.getString("impact", language).uppercase()}",
+                            color = impactColor,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp
                         )
                     }
-                    CountdownTimer(targetTimeMs = event.timestamp)
+                    CountdownTimer(targetTimeMs = event.timestamp, language = language)
                 }
 
                 Divider(color = CryptoSurfaceVariant)
@@ -1103,30 +1147,30 @@ fun EventDetailDialog(
                 // Specific properties based on the exact event subclass
                 when (event) {
                     is AirdropEvent -> {
-                        DetailItem(label = "Tên dự án", value = event.projectName)
+                        DetailItem(label = Translations.getString("project_name", language), value = event.projectName)
                         event.claimDeadline?.let {
-                            DetailItem(label = "Hạn Claim", value = formatEventTime(it, gmtPlus7))
+                            DetailItem(label = Translations.getString("claim_deadline", language), value = formatEventTime(it, selectedTimezone))
                         }
                         event.estimatedValue?.let {
-                            DetailItem(label = "Giá trị ước tính", value = it)
+                            DetailItem(label = Translations.getString("estimated_value", language), value = it)
                         }
                     }
                     is FedMeetingEvent -> {
-                        DetailItem(label = "Loại kỳ họp", value = event.meetingType)
+                        DetailItem(label = Translations.getString("meeting_type", language), value = event.meetingType)
                         event.expectedRateChange?.let {
-                            DetailItem(label = "Lãi suất dự phóng", value = it)
+                            DetailItem(label = Translations.getString("expected_rate", language), value = it)
                         }
                     }
                     is EconomicDataEvent -> {
-                        DetailItem(label = "Chỉ số", value = event.indicator)
-                        DetailItem(label = "Quốc gia", value = event.country)
-                        DetailItem(label = "Dự kiến (Forecast)", value = event.forecastValue ?: "TBA")
-                        DetailItem(label = "Kỳ trước (Previous)", value = event.previousValue ?: "TBA")
-                        DetailItem(label = "Thực tế (Actual)", value = event.actualValue ?: "Chưa công bố")
+                        DetailItem(label = Translations.getString("indicator", language), value = event.indicator)
+                        DetailItem(label = Translations.getString("country", language), value = event.country)
+                        DetailItem(label = Translations.getString("forecast", language), value = event.forecastValue ?: Translations.getString("tba", language))
+                        DetailItem(label = Translations.getString("previous", language), value = event.previousValue ?: Translations.getString("tba", language))
+                        DetailItem(label = Translations.getString("actual", language), value = event.actualValue ?: Translations.getString("not_released", language))
                     }
                 }
 
-                DetailItem(label = "Thời điểm", value = formatEventTime(event.timestamp, gmtPlus7))
+                DetailItem(label = Translations.getString("time", language), value = formatEventTime(event.timestamp, selectedTimezone))
 
                 Divider(color = CryptoSurfaceVariant)
 
@@ -1149,7 +1193,7 @@ fun EventDetailDialog(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = if (isWatchlisted) "Hủy nhắc nhở" else "Nhắc tôi",
+                            text = if (isWatchlisted) Translations.getString("cancel_remind", language) else Translations.getString("remind_me", language),
                             color = if (isWatchlisted) CryptoTextPrimary else CryptoDarkBg,
                             fontWeight = FontWeight.Bold,
                             fontSize = 12.sp
@@ -1166,7 +1210,7 @@ fun EventDetailDialog(
                     ) {
                         Icon(Icons.Filled.Language, contentDescription = "Source", tint = CryptoGold)
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Nguồn gốc", color = CryptoGold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(Translations.getString("source", language), color = CryptoGold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -1188,14 +1232,19 @@ fun formatTimestamp(timestamp: Long): String {
     return format.format(date)
 }
 
-fun formatEventTime(timestamp: Long, useGmtPlus7: Boolean): String {
+fun formatEventTime(timestamp: Long, timezone: String): String {
     val date = Date(timestamp)
     val format = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-    if (useGmtPlus7) {
-        format.timeZone = TimeZone.getTimeZone("GMT+7")
-    } else {
-        format.timeZone = TimeZone.getDefault()
+    val tz = when (timezone) {
+        "Local" -> TimeZone.getDefault()
+        "UTC" -> TimeZone.getTimeZone("UTC")
+        "GMT+7" -> TimeZone.getTimeZone("GMT+7")
+        "GMT+8" -> TimeZone.getTimeZone("GMT+8")
+        "GMT+9" -> TimeZone.getTimeZone("GMT+9")
+        "GMT-5" -> TimeZone.getTimeZone("GMT-5")
+        else -> TimeZone.getTimeZone(timezone)
     }
-    val suffix = if (useGmtPlus7) " (GMT+7)" else " (Local)"
+    format.timeZone = tz
+    val suffix = " ($timezone)"
     return format.format(date) + suffix
 }

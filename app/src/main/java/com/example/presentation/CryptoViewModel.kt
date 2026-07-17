@@ -52,6 +52,12 @@ class CryptoViewModel(
     private val _gmtPlus7Enabled = MutableStateFlow(true)
     val gmtPlus7Enabled = _gmtPlus7Enabled.asStateFlow()
 
+    private val _language = MutableStateFlow("en") // "en" or "vi", default English
+    val language = _language.asStateFlow()
+
+    private val _selectedTimezone = MutableStateFlow("GMT+7") // e.g. "UTC", "GMT+7", "GMT+8", "GMT-5", "GMT+9", "Local"
+    val selectedTimezone = _selectedTimezone.asStateFlow()
+
     private val _notificationsEnabled = MutableStateFlow(true)
     val notificationsEnabled = _notificationsEnabled.asStateFlow()
 
@@ -186,6 +192,20 @@ class CryptoViewModel(
     // Toggle GMT+7 / local timezone
     fun toggleGmtPlus7(enabled: Boolean) {
         _gmtPlus7Enabled.value = enabled
+        // Keep selectedTimezone in sync for backward compatibility
+        _selectedTimezone.value = if (enabled) "GMT+7" else "Local"
+    }
+
+    // Set App Language
+    fun setLanguage(lang: String) {
+        _language.value = lang
+    }
+
+    // Set Selected Timezone
+    fun setSelectedTimezone(tz: String) {
+        _selectedTimezone.value = tz
+        // Keep gmtPlus7Enabled in sync for backward compatibility
+        _gmtPlus7Enabled.value = (tz == "GMT+7")
     }
 
     // Toggle Ads

@@ -85,11 +85,13 @@ val promoAdPool = listOf(
 
 @Composable
 fun AdBanner(
+    viewModel: CryptoViewModel,
     modifier: Modifier = Modifier,
     marginDp: Int = 8 // Customizable margin/padding parameter
 ) {
     var isAdmobFailed by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val language by viewModel.language.collectAsState()
 
     // Column to wrap the ad with custom margin spacing
     Column(
@@ -127,14 +129,14 @@ fun AdBanner(
             )
         } else {
             // Elegant premium Custom Fallback Promotional Banner
-            CustomPromoBanner()
+            CustomPromoBanner(language = language)
         }
     }
 }
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun CustomPromoBanner() {
+fun CustomPromoBanner(language: String) {
     val context = LocalContext.current
     var currentAdIndex by remember { mutableStateOf(0) }
 
@@ -147,6 +149,30 @@ fun CustomPromoBanner() {
     }
 
     val currentAd = promoAdPool[currentAdIndex]
+    
+    // Dynamic translated content
+    val adTitle = when (currentAdIndex) {
+        0 -> Translations.getString("faucet_ad_title", language)
+        1 -> Translations.getString("binance_ad_title", language)
+        2 -> Translations.getString("coinbase_ad_title", language)
+        3 -> Translations.getString("fred_ad_title", language)
+        else -> currentAd.title
+    }
+    val adDescription = when (currentAdIndex) {
+        0 -> Translations.getString("faucet_ad_desc", language)
+        1 -> Translations.getString("binance_ad_desc", language)
+        2 -> Translations.getString("coinbase_ad_desc", language)
+        3 -> Translations.getString("fred_ad_desc", language)
+        else -> currentAd.description
+    }
+    val adCta = when (currentAdIndex) {
+        0 -> Translations.getString("faucet_ad_cta", language)
+        1 -> Translations.getString("binance_ad_cta", language)
+        2 -> Translations.getString("coinbase_ad_cta", language)
+        3 -> Translations.getString("fred_ad_cta", language)
+        else -> currentAd.callToAction
+    }
+    val adBadge = Translations.getString("custom_ad_badge", language)
 
     // Pulsing gradient border animation
     val infiniteTransition = rememberInfiniteTransition(label = "Pulse")
@@ -201,7 +227,7 @@ fun CustomPromoBanner() {
                         .padding(horizontal = 5.dp, vertical = 2.dp)
                 ) {
                     Text(
-                        text = currentAd.badgeText,
+                        text = adBadge,
                         color = CryptoGold,
                         fontWeight = FontWeight.Bold,
                         fontSize = 9.sp,
@@ -220,7 +246,7 @@ fun CustomPromoBanner() {
             // Copy and detail
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = currentAd.title,
+                    text = adTitle,
                     color = CryptoTextPrimary,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
@@ -229,7 +255,7 @@ fun CustomPromoBanner() {
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = currentAd.description,
+                    text = adDescription,
                     color = CryptoTextSecondary,
                     fontSize = 10.sp,
                     maxLines = 2,
@@ -258,7 +284,7 @@ fun CustomPromoBanner() {
                 shape = RoundedCornerShape(4.dp)
             ) {
                 Text(
-                    text = currentAd.callToAction,
+                    text = adCta,
                     color = CryptoDarkBg,
                     fontWeight = FontWeight.Bold,
                     fontSize = 10.sp
