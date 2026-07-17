@@ -1,0 +1,39 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Subtle Shadow of the coin -->
+    <path
+        android:fillColor="#80000000"
+        android:pathData="M 56, 56 m -26, 0 a 26,26 0 1,0 52,0 a 26,26 0 1,0 -52,0" />
+    
+    <!-- Outer Gold Coin Border & Base -->
+    <path
+        android:pathData="M 54, 54 m -24, 0 a 24,24 0 1,0 48,0 a 24,24 0 1,0 -48,0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:endX="78"
+                android:endY="78"
+                android:startX="30"
+                android:startY="30"
+                android:type="linear">
+                <item
+                    android:color="#FFD700"
+                    android:offset="0.0" />
+                <item
+                    android:color="#FFA500"
+                    android:offset="0.5" />
+                <item
+                    android:color="#CC7A00"
+                    android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Inside Coin - Stylized "C" with trend lines -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 46,42 H 62 V 46 H 46 Z M 46,52 H 58 V 56 H 46 Z M 46,62 H 62 V 66 H 46 Z M 40,38 H 44 V 70 H 40 Z" />
+</vector>

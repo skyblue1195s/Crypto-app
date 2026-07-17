@@ -1,0 +1,6 @@
+{
+  "name": "Crypto News",
+  "description": "Follow real-time crypto news, token events, FOMC calendar, and global economic data with smart alerts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
