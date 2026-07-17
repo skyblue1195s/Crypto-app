@@ -44,6 +44,8 @@ fun MainScreen(viewModel: CryptoViewModel) {
     var selectedTab by remember { mutableIntStateOf(0) }
     
     val selectedEvent by viewModel.selectedEvent.collectAsState()
+    val adsEnabled by viewModel.adsEnabled.collectAsState()
+    val adsMargin by viewModel.adsMargin.collectAsState()
 
     Scaffold(
         topBar = {
@@ -167,25 +169,35 @@ fun MainScreen(viewModel: CryptoViewModel) {
         },
         containerColor = CryptoDarkBg
     ) { innerPadding ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            when (selectedTab) {
-                0 -> NewsTab(viewModel = viewModel)
-                1 -> CalendarTab(viewModel = viewModel)
-                2 -> WatchlistTab(viewModel = viewModel)
-                3 -> SettingsTab(viewModel = viewModel)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            ) {
+                when (selectedTab) {
+                    0 -> NewsTab(viewModel = viewModel)
+                    1 -> CalendarTab(viewModel = viewModel)
+                    2 -> WatchlistTab(viewModel = viewModel)
+                    3 -> SettingsTab(viewModel = viewModel)
+                }
+
+                // Show Event detail dialog when selected
+                selectedEvent?.let { event ->
+                    EventDetailDialog(
+                        event = event,
+                        viewModel = viewModel,
+                        onDismiss = { viewModel.selectEvent(null) }
+                    )
+                }
             }
 
-            // Show Event detail dialog when selected
-            selectedEvent?.let { event ->
-                EventDetailDialog(
-                    event = event,
-                    viewModel = viewModel,
-                    onDismiss = { viewModel.selectEvent(null) }
-                )
+            if (adsEnabled) {
+                AdBanner(marginDp = adsMargin)
             }
         }
     }
@@ -608,6 +620,8 @@ fun WatchlistTab(viewModel: CryptoViewModel) {
 fun SettingsTab(viewModel: CryptoViewModel) {
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
     val gmtPlus7Enabled by viewModel.gmtPlus7Enabled.collectAsState()
+    val adsEnabled by viewModel.adsEnabled.collectAsState()
+    val adsMargin by viewModel.adsMargin.collectAsState()
     val context = LocalContext.current
 
     Column(
@@ -695,6 +709,74 @@ fun SettingsTab(viewModel: CryptoViewModel) {
                     ),
                     modifier = Modifier.testTag("toggle_timezone")
                 )
+            }
+        }
+
+        // Ads & Spacing Configuration Card
+        Card(
+            colors = CardDefaults.cardColors(containerColor = CryptoSurface),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Bật quảng cáo tài trợ",
+                            color = CryptoTextPrimary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp
+                        )
+                        Text(
+                            text = "Hiển thị các chiến dịch airdrop, tin tài trợ và quảng cáo ở chân trang.",
+                            color = CryptoTextSecondary,
+                            fontSize = 12.sp
+                        )
+                    }
+                    Switch(
+                        checked = adsEnabled,
+                        onCheckedChange = { viewModel.toggleAds(it) },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = CryptoDarkBg,
+                            checkedTrackColor = CryptoGold
+                        ),
+                        modifier = Modifier.testTag("toggle_ads")
+                    )
+                }
+
+                if (adsEnabled) {
+                    Spacer(modifier = Modifier.height(14.dp))
+                    HorizontalDivider(color = CryptoSurfaceVariant)
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Text(
+                        text = "Khoảng lề Ads Margin: ${adsMargin}dp",
+                        color = CryptoTextPrimary,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        text = "Tùy chỉnh khoảng cách và độ lề ngang cho khung quảng cáo trong giao diện.",
+                        color = CryptoTextSecondary,
+                        fontSize = 11.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Slider(
+                        value = adsMargin.toFloat(),
+                        onValueChange = { viewModel.setAdsMargin(it.toInt()) },
+                        valueRange = 4f..24f,
+                        steps = 4, // 4, 8, 12, 16, 20, 24
+                        colors = SliderDefaults.colors(
+                            thumbColor = CryptoGold,
+                            activeTrackColor = CryptoGold,
+                            inactiveTrackColor = CryptoSurfaceVariant
+                        ),
+                        modifier = Modifier.testTag("ads_margin_slider")
+                    )
+                }
             }
         }
 

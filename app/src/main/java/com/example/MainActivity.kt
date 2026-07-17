@@ -27,6 +27,13 @@ class MainActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
 
+    // Initialize Google Mobile Ads SDK asynchronously
+    try {
+        com.google.android.gms.ads.MobileAds.initialize(this) {}
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+
     // 1. Build DB DAOs
     val db = AppDatabase.getDatabase(applicationContext)
 

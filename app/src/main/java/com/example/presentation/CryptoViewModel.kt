@@ -55,6 +55,12 @@ class CryptoViewModel(
     private val _notificationsEnabled = MutableStateFlow(true)
     val notificationsEnabled = _notificationsEnabled.asStateFlow()
 
+    private val _adsEnabled = MutableStateFlow(true)
+    val adsEnabled = _adsEnabled.asStateFlow()
+
+    private val _adsMargin = MutableStateFlow(12) // Default margin 12dp
+    val adsMargin = _adsMargin.asStateFlow()
+
     // Active detail event
     private val _selectedEvent = MutableStateFlow<MarketEvent?>(null)
     val selectedEvent = _selectedEvent.asStateFlow()
@@ -180,6 +186,16 @@ class CryptoViewModel(
     // Toggle GMT+7 / local timezone
     fun toggleGmtPlus7(enabled: Boolean) {
         _gmtPlus7Enabled.value = enabled
+    }
+
+    // Toggle Ads
+    fun toggleAds(enabled: Boolean) {
+        _adsEnabled.value = enabled
+    }
+
+    // Set Ads Margin
+    fun setAdsMargin(margin: Int) {
+        _adsMargin.value = margin
     }
 
     // Toggle Notifications
