@@ -52,7 +52,10 @@ class CryptoViewModel(
     private val _gmtPlus7Enabled = MutableStateFlow(true)
     val gmtPlus7Enabled = _gmtPlus7Enabled.asStateFlow()
 
-    private val _language = MutableStateFlow("en") // "en" or "vi", default English
+    private val _language = MutableStateFlow(
+        application.getSharedPreferences("crypto_prefs", Context.MODE_PRIVATE)
+            .getString("app_language", "en") ?: "en"
+    )
     val language = _language.asStateFlow()
 
     private val _selectedTimezone = MutableStateFlow("GMT+7") // e.g. "UTC", "GMT+7", "GMT+8", "GMT-5", "GMT+9", "Local"
@@ -199,6 +202,10 @@ class CryptoViewModel(
     // Set App Language
     fun setLanguage(lang: String) {
         _language.value = lang
+        getApplication<Application>().getSharedPreferences("crypto_prefs", Context.MODE_PRIVATE)
+            .edit()
+            .putString("app_language", lang)
+            .apply()
     }
 
     // Set Selected Timezone

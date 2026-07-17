@@ -75,7 +75,9 @@ object Translations {
         "fred_ad_title" to "Predict FOMC with FRED",
         "fred_ad_desc" to "Track live inflation, jobs & US rate charts directly from St. Louis Federal Reserve.",
         "fred_ad_cta" to "View Indicators",
-        "custom_ad_badge" to "SPONSORED"
+        "custom_ad_badge" to "SPONSORED",
+        "notification_fallback_title" to "Upcoming Important Event",
+        "notification_message" to "Macro/on-chain event starts in 30 minutes. Tap to view the countdown details!"
     )
 
     private val vi = mapOf(
@@ -152,7 +154,9 @@ object Translations {
         "fred_ad_title" to "Dự báo FOMC cùng FRED",
         "fred_ad_desc" to "Theo dõi các biểu đồ lạm phát, việc làm & lãi suất Mỹ trực tiếp từ Cục Dự trữ Liên bang St. Louis.",
         "fred_ad_cta" to "Xem Chỉ Số",
-        "custom_ad_badge" to "TÀI TRỢ"
+        "custom_ad_badge" to "TÀI TRỢ",
+        "notification_fallback_title" to "Sự kiện quan trọng sắp diễn ra",
+        "notification_message" to "Sự kiện vĩ mô/on-chain sắp bắt đầu sau 30 phút. Nhấp để xem chi tiết đếm ngược!"
     )
 
     fun getString(key: String, lang: String): String {
