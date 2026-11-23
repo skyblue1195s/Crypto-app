@@ -77,7 +77,19 @@ object Translations {
         "fred_ad_cta" to "View Indicators",
         "custom_ad_badge" to "SPONSORED",
         "notification_fallback_title" to "Upcoming Important Event",
-        "notification_message" to "Macro/on-chain event starts in 30 minutes. Tap to view the countdown details!"
+        "notification_message" to "Macro/on-chain event starts in 30 minutes. Tap to view the countdown details!",
+        "btc_price_alerts" to "Bitcoin Price Alerts",
+        "btc_price_alerts_desc" to "Get instant push notifications when BTC price surges or drops significantly.",
+        "btc_fluctuation_threshold" to "Alert Threshold",
+        "btc_threshold_desc" to "Notify when BTC price moves by at least:",
+        "btc_current_price" to "Current BTC Price",
+        "btc_baseline_price" to "Alert Baseline",
+        "btc_reset_baseline" to "Reset Baseline to Current Price",
+        "btc_send_test_alert" to "Test Notification Now",
+        "btc_test_alert_toast" to "Test BTC alert sent! Check your notification shade.",
+        "notification_permission_btn" to "Grant Notification Permission",
+        "notification_permission_desc" to "Notification permission is needed to deliver price alerts on Android 13+.",
+        "btc_fluctuation_alert_active" to "Active (Monitoring BTC)"
     )
 
     private val vi = mapOf(
@@ -156,7 +168,19 @@ object Translations {
         "fred_ad_cta" to "Xem Chỉ Số",
         "custom_ad_badge" to "TÀI TRỢ",
         "notification_fallback_title" to "Sự kiện quan trọng sắp diễn ra",
-        "notification_message" to "Sự kiện vĩ mô/on-chain sắp bắt đầu sau 30 phút. Nhấp để xem chi tiết đếm ngược!"
+        "notification_message" to "Sự kiện vĩ mô/on-chain sắp bắt đầu sau 30 phút. Nhấp để xem chi tiết đếm ngược!",
+        "btc_price_alerts" to "Cảnh báo biến động giá Bitcoin",
+        "btc_price_alerts_desc" to "Nhận thông báo đẩy tức thì khi giá BTC biến động tăng/giảm mạnh theo thời gian thực.",
+        "btc_fluctuation_threshold" to "Ngưỡng biến động",
+        "btc_threshold_desc" to "Gửi thông báo khi giá BTC thay đổi từ:",
+        "btc_current_price" to "Giá BTC hiện tại",
+        "btc_baseline_price" to "Mốc so sánh hiện tại",
+        "btc_reset_baseline" to "Đặt mốc bằng giá hiện tại",
+        "btc_send_test_alert" to "Thử nghiệm thông báo ngay",
+        "btc_test_alert_toast" to "Đã gửi thông báo cảnh báo BTC! Hãy kéo thanh thông báo để xem.",
+        "notification_permission_btn" to "Cấp quyền thông báo",
+        "notification_permission_desc" to "Cần cấp quyền thông báo để hiển thị cảnh báo giá trên Android 13+.",
+        "btc_fluctuation_alert_active" to "Đang hoạt động (Đang theo dõi)"
     )
 
     fun getString(key: String, lang: String): String {

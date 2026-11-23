@@ -3,6 +3,12 @@ package com.example.presentation
 import android.content.Intent
 import android.net.Uri
 import android.text.format.DateFormat
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,9 +18,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
+import androidx.core.content.ContextCompat
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -209,6 +217,8 @@ fun PriceTickerRow(viewModel: CryptoViewModel) {
     val prices by viewModel.coinPrices.collectAsState()
     val scrollState = rememberScrollState()
 
+    val btcAlertsEnabled by viewModel.btcAlertsEnabled.collectAsState()
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -223,6 +233,7 @@ fun PriceTickerRow(viewModel: CryptoViewModel) {
             val isUp = change >= 0
             val color = if (isUp) ImpactSuccess else ImpactHigh
             val sign = if (isUp) "+" else ""
+            val isBtc = coin.equals("bitcoin", ignoreCase = true)
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -230,6 +241,15 @@ fun PriceTickerRow(viewModel: CryptoViewModel) {
                     .background(CryptoDarkBg, RoundedCornerShape(4.dp))
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
+                if (isBtc && btcAlertsEnabled) {
+                    Icon(
+                        imageVector = Icons.Filled.NotificationsActive,
+                        contentDescription = "BTC Price Alert Active",
+                        tint = CryptoGold,
+                        modifier = Modifier.size(13.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                }
                 Text(
                     text = coin.replaceFirstChar { it.uppercase() },
                     color = CryptoTextPrimary,
@@ -647,15 +667,46 @@ fun WatchlistTab(viewModel: CryptoViewModel) {
 @Composable
 fun SettingsTab(viewModel: CryptoViewModel) {
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
+    val btcAlertsEnabled by viewModel.btcAlertsEnabled.collectAsState()
+    val btcAlertThreshold by viewModel.btcAlertThreshold.collectAsState()
+    val lastBtcPrice by viewModel.lastBtcPrice.collectAsState()
+    val currentBtcPrice by viewModel.currentBtcPrice.collectAsState()
     val selectedTimezone by viewModel.selectedTimezone.collectAsState()
     val language by viewModel.language.collectAsState()
     val adsEnabled by viewModel.adsEnabled.collectAsState()
     val adsMargin by viewModel.adsMargin.collectAsState()
     val context = LocalContext.current
 
+    var hasNotificationPermission by remember {
+        mutableStateOf(
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+            } else {
+                true
+            }
+        )
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        hasNotificationPermission = isGranted
+        if (isGranted) {
+            Toast.makeText(
+                context,
+                if (language == "vi") "Đã cấp quyền thông báo thành công!" else "Notification permission granted!",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -667,7 +718,287 @@ fun SettingsTab(viewModel: CryptoViewModel) {
             fontSize = 14.sp
         )
 
-        // Notification Toggle Row
+        // BTC Price Fluctuation Alert Card
+        Card(
+            colors = CardDefaults.cardColors(containerColor = CryptoSurface),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("card_btc_alerts")
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(CryptoGold.copy(alpha = 0.15f), RoundedCornerShape(8.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.TrendingUp,
+                                contentDescription = "BTC",
+                                tint = CryptoGold,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = Translations.getString("btc_price_alerts", language),
+                                color = CryptoTextPrimary,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp
+                            )
+                            Text(
+                                text = Translations.getString("btc_price_alerts_desc", language),
+                                color = CryptoTextSecondary,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+
+                    Switch(
+                        checked = btcAlertsEnabled,
+                        onCheckedChange = { enabled ->
+                            if (enabled && !hasNotificationPermission && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            }
+                            viewModel.setBtcAlertsEnabled(enabled)
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = CryptoDarkBg,
+                            checkedTrackColor = CryptoGold
+                        ),
+                        modifier = Modifier.testTag("toggle_btc_alerts")
+                    )
+                }
+
+                if (!hasNotificationPermission && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = ImpactMedium.copy(alpha = 0.15f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = Translations.getString("notification_permission_desc", language),
+                                color = ImpactMedium,
+                                fontSize = 12.sp,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(
+                                onClick = { permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) },
+                                colors = ButtonDefaults.buttonColors(containerColor = ImpactMedium),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Text(
+                                    text = Translations.getString("notification_permission_btn", language),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = CryptoDarkBg
+                                )
+                            }
+                        }
+                    }
+                }
+
+                AnimatedVisibility(visible = btcAlertsEnabled) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        HorizontalDivider(color = CryptoSurfaceVariant)
+
+                        // Live & Baseline Price Stats
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(CryptoDarkBg, RoundedCornerShape(8.dp))
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = Translations.getString("btc_current_price", language),
+                                    color = CryptoTextSecondary,
+                                    fontSize = 11.sp
+                                )
+                                Text(
+                                    text = "$${String.format(Locale.US, "%,.1f", currentBtcPrice)}",
+                                    color = CryptoGold,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 16.sp
+                                )
+                            }
+
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(
+                                    text = Translations.getString("btc_baseline_price", language),
+                                    color = CryptoTextSecondary,
+                                    fontSize = 11.sp
+                                )
+                                val baselineDisplay = if (lastBtcPrice > 0f) "$${String.format(Locale.US, "%,.1f", lastBtcPrice)}" else "Chưa đặt"
+                                Text(
+                                    text = baselineDisplay,
+                                    color = CryptoTextPrimary,
+                                    fontWeight = FontWeight.Medium,
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 14.sp
+                                )
+                            }
+                        }
+
+                        // Threshold Selection Row
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(
+                                text = Translations.getString("btc_threshold_desc", language),
+                                color = CryptoTextSecondary,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                val thresholds = listOf(1.0f, 2.0f, 3.0f, 5.0f, 10.0f)
+                                thresholds.forEach { th ->
+                                    val isSelected = btcAlertThreshold == th
+                                    FilterChip(
+                                        selected = isSelected,
+                                        onClick = { viewModel.setBtcAlertThreshold(th) },
+                                        label = {
+                                            Text(
+                                                text = "±${th.toInt()}%",
+                                                color = if (isSelected) CryptoDarkBg else CryptoTextPrimary,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 12.sp
+                                            )
+                                        },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = CryptoGold,
+                                            containerColor = CryptoSurfaceVariant
+                                        ),
+                                        modifier = Modifier.testTag("threshold_chip_${th.toInt()}")
+                                    )
+                                }
+                            }
+                        }
+
+                        // Status & Action Row
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            OutlinedButton(
+                                onClick = {
+                                    viewModel.resetBtcBaselinePrice()
+                                    Toast.makeText(
+                                        context,
+                                        if (language == "vi") "Đã cập nhật mốc so sánh!" else "Baseline price updated!",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
+                                modifier = Modifier.weight(1f),
+                                border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.PinDrop,
+                                    contentDescription = "Reset",
+                                    tint = CryptoGold,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = Translations.getString("btc_reset_baseline", language),
+                                    color = CryptoGold,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+
+                            Button(
+                                onClick = {
+                                    if (!hasNotificationPermission && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                        permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                    } else {
+                                        viewModel.sendTestBtcAlert()
+                                        Toast.makeText(
+                                            context,
+                                            Translations.getString("btc_test_alert_toast", language),
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                    }
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(containerColor = CryptoGold)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.NotificationsActive,
+                                    contentDescription = "Test",
+                                    tint = CryptoDarkBg,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = Translations.getString("btc_send_test_alert", language),
+                                    color = CryptoDarkBg,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+
+                        // Background Worker Status Indicator
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(ImpactSuccess.copy(alpha = 0.1f), RoundedCornerShape(6.dp))
+                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .background(ImpactSuccess, RoundedCornerShape(4.dp))
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = Translations.getString("btc_fluctuation_alert_active", language),
+                                color = ImpactSuccess,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // Notification Toggle Row (for Calendar Events)
         Card(
             colors = CardDefaults.cardColors(containerColor = CryptoSurface),
             modifier = Modifier.fillMaxWidth()
@@ -838,35 +1169,6 @@ fun SettingsTab(viewModel: CryptoViewModel) {
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(Translations.getString("sync_button", language), color = CryptoDarkBg, fontWeight = FontWeight.Bold)
                 }
-            }
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        // API Status Info
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(CryptoSurfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
-                .padding(12.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = Translations.getString("api_connections", language),
-                    color = CryptoGold,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "• News: CryptoCompare API\n• Prices: CoinGecko Public Tier\n• Fed & Airdrops: Seeding & FRED Sync",
-                    color = CryptoTextSecondary,
-                    fontSize = 11.sp,
-                    lineHeight = 16.sp,
-                    textAlign = TextAlign.Center
-                )
             }
         }
     }
@@ -1142,7 +1444,7 @@ fun EventDetailDialog(
                     CountdownTimer(targetTimeMs = event.timestamp, language = language)
                 }
 
-                Divider(color = CryptoSurfaceVariant)
+                HorizontalDivider(color = CryptoSurfaceVariant)
 
                 // Specific properties based on the exact event subclass
                 when (event) {
@@ -1172,7 +1474,7 @@ fun EventDetailDialog(
 
                 DetailItem(label = Translations.getString("time", language), value = formatEventTime(event.timestamp, selectedTimezone))
 
-                Divider(color = CryptoSurfaceVariant)
+                HorizontalDivider(color = CryptoSurfaceVariant)
 
                 // Actions buttons
                 Row(

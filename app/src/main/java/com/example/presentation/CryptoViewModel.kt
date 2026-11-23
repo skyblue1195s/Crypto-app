@@ -16,6 +16,8 @@ import com.example.domain.model.MarketEvent
 import com.example.domain.model.NewsArticle
 import com.example.domain.repository.CryptoRepository
 import com.example.notification.NotificationHelper
+import com.example.worker.BtcPriceAlertWorker
+import kotlin.math.abs
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.Dispatchers
@@ -49,12 +51,13 @@ class CryptoViewModel(
     val eventFilterImpact = _eventFilterImpact.asStateFlow()
 
     // Settings States
+    private val prefs = application.getSharedPreferences("crypto_prefs", Context.MODE_PRIVATE)
+
     private val _gmtPlus7Enabled = MutableStateFlow(true)
     val gmtPlus7Enabled = _gmtPlus7Enabled.asStateFlow()
 
     private val _language = MutableStateFlow(
-        application.getSharedPreferences("crypto_prefs", Context.MODE_PRIVATE)
-            .getString("app_language", "en") ?: "en"
+        prefs.getString("app_language", "en") ?: "en"
     )
     val language = _language.asStateFlow()
 
@@ -63,6 +66,27 @@ class CryptoViewModel(
 
     private val _notificationsEnabled = MutableStateFlow(true)
     val notificationsEnabled = _notificationsEnabled.asStateFlow()
+
+    // BTC Price Alert States
+    private val _btcAlertsEnabled = MutableStateFlow(
+        prefs.getBoolean("btc_alerts_enabled", true)
+    )
+    val btcAlertsEnabled = _btcAlertsEnabled.asStateFlow()
+
+    private val _btcAlertThreshold = MutableStateFlow(
+        prefs.getFloat("btc_alert_threshold", 2.0f)
+    )
+    val btcAlertThreshold = _btcAlertThreshold.asStateFlow()
+
+    private val _lastBtcPrice = MutableStateFlow(
+        prefs.getFloat("last_btc_price", 0.0f)
+    )
+    val lastBtcPrice = _lastBtcPrice.asStateFlow()
+
+    private val _currentBtcPrice = MutableStateFlow(67250.0)
+    val currentBtcPrice = _currentBtcPrice.asStateFlow()
+
+    private var lastInAppAlertTime = 0L
 
     private val _adsEnabled = MutableStateFlow(true)
     val adsEnabled = _adsEnabled.asStateFlow()
@@ -126,6 +150,45 @@ class CryptoViewModel(
     init {
         refreshNewsFeed()
         NotificationHelper.createNotificationChannel(application)
+        if (_btcAlertsEnabled.value) {
+            BtcPriceAlertWorker.schedule(application)
+        }
+        observeBtcPriceChanges()
+    }
+
+    private fun observeBtcPriceChanges() {
+        viewModelScope.launch {
+            coinPrices.collect { prices ->
+                val btcPair = prices["bitcoin"]
+                if (btcPair != null) {
+                    val current = btcPair.first
+                    _currentBtcPrice.value = current
+
+                    var baseline = _lastBtcPrice.value.toDouble()
+                    if (baseline <= 0.0 && current > 0.0) {
+                        baseline = current
+                        _lastBtcPrice.value = current.toFloat()
+                        prefs.edit().putFloat("last_btc_price", current.toFloat()).apply()
+                    } else if (_btcAlertsEnabled.value && current > 0.0 && baseline > 0.0) {
+                        val pctChange = ((current - baseline) / baseline) * 100.0
+                        val threshold = _btcAlertThreshold.value.toDouble()
+                        val now = System.currentTimeMillis()
+                        // Throttle in-app price alerts to at most once every 5 minutes
+                        if (abs(pctChange) >= threshold && (now - lastInAppAlertTime > 5 * 60 * 1000L)) {
+                            lastInAppAlertTime = now
+                            NotificationHelper.showBtcPriceAlert(
+                                context = getApplication(),
+                                currentPrice = current,
+                                previousPrice = baseline,
+                                changePct = pctChange
+                            )
+                            _lastBtcPrice.value = current.toFloat()
+                            prefs.edit().putFloat("last_btc_price", current.toFloat()).apply()
+                        }
+                    }
+                }
+            }
+        }
     }
 
     fun refreshNewsFeed() {
@@ -251,6 +314,43 @@ class CryptoViewModel(
                 }
             }
         }
+    }
+
+    // BTC Price Alert Control Methods
+    fun setBtcAlertsEnabled(enabled: Boolean) {
+        _btcAlertsEnabled.value = enabled
+        prefs.edit().putBoolean("btc_alerts_enabled", enabled).apply()
+        if (enabled) {
+            BtcPriceAlertWorker.schedule(getApplication())
+        } else {
+            BtcPriceAlertWorker.cancel(getApplication())
+        }
+    }
+
+    fun setBtcAlertThreshold(threshold: Float) {
+        _btcAlertThreshold.value = threshold
+        prefs.edit().putFloat("btc_alert_threshold", threshold).apply()
+    }
+
+    fun resetBtcBaselinePrice() {
+        val current = _currentBtcPrice.value.toFloat()
+        if (current > 0f) {
+            _lastBtcPrice.value = current
+            prefs.edit().putFloat("last_btc_price", current).apply()
+        }
+    }
+
+    fun sendTestBtcAlert() {
+        val current = if (_currentBtcPrice.value > 0.0) _currentBtcPrice.value else 67250.0
+        val change = 3.25 // Simulated +3.25% surge for immediate test
+        val prev = current / (1 + (change / 100.0))
+        NotificationHelper.showBtcPriceAlert(
+            context = getApplication(),
+            currentPrice = current,
+            previousPrice = prev,
+            changePct = change,
+            isTest = true
+        )
     }
 
     companion object {
