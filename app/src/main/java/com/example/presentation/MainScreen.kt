@@ -390,8 +390,12 @@ fun NewsTab(viewModel: CryptoViewModel) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(article.sourceUrl))
-                                context.startActivity(browserIntent)
+                                try {
+                                    val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(article.sourceUrl))
+                                    context.startActivity(browserIntent)
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
                             },
                         colors = CardDefaults.cardColors(containerColor = CryptoSurface)
                     ) {
@@ -1504,8 +1508,12 @@ fun EventDetailDialog(
 
                     OutlinedButton(
                         onClick = {
-                            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(event.sourceUrl))
-                            context.startActivity(browserIntent)
+                            try {
+                                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(event.sourceUrl))
+                                context.startActivity(browserIntent)
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
                         },
                         border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.dp),
                         modifier = Modifier.weight(1f)

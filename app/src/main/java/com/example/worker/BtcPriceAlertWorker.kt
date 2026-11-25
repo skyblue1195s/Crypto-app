@@ -81,17 +81,25 @@ class BtcPriceAlertWorker(
         private const val WORK_NAME = "BtcPriceAlertWork"
 
         fun schedule(context: Context) {
-            val workRequest = PeriodicWorkRequestBuilder<BtcPriceAlertWorker>(15, TimeUnit.MINUTES)
-                .build()
-            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-                WORK_NAME,
-                ExistingPeriodicWorkPolicy.KEEP,
-                workRequest
-            )
+            try {
+                val workRequest = PeriodicWorkRequestBuilder<BtcPriceAlertWorker>(15, TimeUnit.MINUTES)
+                    .build()
+                WorkManager.getInstance(context.applicationContext).enqueueUniquePeriodicWork(
+                    WORK_NAME,
+                    ExistingPeriodicWorkPolicy.KEEP,
+                    workRequest
+                )
+            } catch (t: Throwable) {
+                t.printStackTrace()
+            }
         }
 
         fun cancel(context: Context) {
-            WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
+            try {
+                WorkManager.getInstance(context.applicationContext).cancelUniqueWork(WORK_NAME)
+            } catch (t: Throwable) {
+                t.printStackTrace()
+            }
         }
     }
 }

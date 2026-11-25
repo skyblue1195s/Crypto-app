@@ -30,8 +30,8 @@ class MainActivity : ComponentActivity() {
     // Initialize Google Mobile Ads SDK asynchronously
     try {
         com.google.android.gms.ads.MobileAds.initialize(this) {}
-    } catch (e: Exception) {
-        e.printStackTrace()
+    } catch (t: Throwable) {
+        t.printStackTrace()
     }
 
     // Initialize notification channels and periodic BTC worker
@@ -41,19 +41,23 @@ class MainActivity : ComponentActivity() {
         if (prefs.getBoolean("btc_alerts_enabled", true)) {
             com.example.worker.BtcPriceAlertWorker.schedule(this)
         }
-    } catch (e: Exception) {
-        e.printStackTrace()
+    } catch (t: Throwable) {
+        t.printStackTrace()
     }
 
     // Request notification permission on Android 13+ (API 33+) if not granted
-    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-        if (androidx.core.content.ContextCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.POST_NOTIFICATIONS
-            ) != android.content.pm.PackageManager.PERMISSION_GRANTED
-        ) {
-            requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 101)
+    try {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (androidx.core.content.ContextCompat.checkSelfPermission(
+                    this,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 101)
+            }
         }
+    } catch (t: Throwable) {
+        t.printStackTrace()
     }
 
     // 1. Build DB DAOs

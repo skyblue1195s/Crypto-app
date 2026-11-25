@@ -149,9 +149,13 @@ class CryptoViewModel(
 
     init {
         refreshNewsFeed()
-        NotificationHelper.createNotificationChannel(application)
-        if (_btcAlertsEnabled.value) {
-            BtcPriceAlertWorker.schedule(application)
+        try {
+            NotificationHelper.createNotificationChannel(application)
+            if (_btcAlertsEnabled.value) {
+                BtcPriceAlertWorker.schedule(application)
+            }
+        } catch (t: Throwable) {
+            t.printStackTrace()
         }
         observeBtcPriceChanges()
     }

@@ -17,30 +17,34 @@ object NotificationHelper {
     private const val BTC_CHANNEL_NAME = "Bitcoin Price Alerts"
 
     fun createNotificationChannel(context: Context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            
-            // Channel 1: Macro & Calendar Event Alerts
-            val eventChannel = NotificationChannel(
-                CHANNEL_ID,
-                CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Get notified before high-impact FOMC, CPI, and token events."
-                enableVibration(true)
-            }
-            notificationManager.createNotificationChannel(eventChannel)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
 
-            // Channel 2: Bitcoin Price Fluctuation Alerts
-            val btcChannel = NotificationChannel(
-                BTC_CHANNEL_ID,
-                BTC_CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Urgent alerts when Bitcoin (BTC) price surges or drops significantly."
-                enableVibration(true)
+                // Channel 1: Macro & Calendar Event Alerts
+                val eventChannel = NotificationChannel(
+                    CHANNEL_ID,
+                    CHANNEL_NAME,
+                    NotificationManager.IMPORTANCE_HIGH
+                ).apply {
+                    description = "Get notified before high-impact FOMC, CPI, and token events."
+                    enableVibration(true)
+                }
+                notificationManager.createNotificationChannel(eventChannel)
+
+                // Channel 2: Bitcoin Price Fluctuation Alerts
+                val btcChannel = NotificationChannel(
+                    BTC_CHANNEL_ID,
+                    BTC_CHANNEL_NAME,
+                    NotificationManager.IMPORTANCE_HIGH
+                ).apply {
+                    description = "Urgent alerts when Bitcoin (BTC) price surges or drops significantly."
+                    enableVibration(true)
+                }
+                notificationManager.createNotificationChannel(btcChannel)
             }
-            notificationManager.createNotificationChannel(btcChannel)
+        } catch (t: Throwable) {
+            t.printStackTrace()
         }
     }
 
@@ -99,8 +103,12 @@ object NotificationHelper {
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(2002, builder.build())
+        try {
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
+            notificationManager.notify(2002, builder.build())
+        } catch (t: Throwable) {
+            t.printStackTrace()
+        }
     }
 
     fun showNotification(context: Context, eventId: String, title: String, message: String) {
@@ -123,8 +131,12 @@ object NotificationHelper {
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(eventId.hashCode(), builder.build())
+        try {
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
+            notificationManager.notify(eventId.hashCode(), builder.build())
+        } catch (t: Throwable) {
+            t.printStackTrace()
+        }
     }
 
     fun scheduleEventAlarm(context: Context, eventId: String, title: String, triggerTimeMs: Long) {

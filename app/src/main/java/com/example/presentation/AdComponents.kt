@@ -109,21 +109,28 @@ fun AdBanner(
                     .background(CryptoSurface, RoundedCornerShape(8.dp))
                     .clip(RoundedCornerShape(8.dp)),
                 factory = { ctx ->
-                    com.google.android.gms.ads.AdView(ctx).apply {
-                        setAdSize(AdSize.BANNER)
-                        adUnitId = ADMOB_TEST_BANNER_ID
-                        adListener = object : AdListener() {
-                            override fun onAdFailedToLoad(error: LoadAdError) {
-                                super.onAdFailedToLoad(error)
-                                // Fallback immediately if Google Mobile Ads service fails to fetch
-                                isAdmobFailed = true
+                    try {
+                        com.google.android.gms.ads.AdView(ctx).apply {
+                            setAdSize(AdSize.BANNER)
+                            adUnitId = ADMOB_TEST_BANNER_ID
+                            adListener = object : AdListener() {
+                                override fun onAdFailedToLoad(error: LoadAdError) {
+                                    super.onAdFailedToLoad(error)
+                                    // Fallback immediately if Google Mobile Ads service fails to fetch
+                                    isAdmobFailed = true
+                                }
                             }
+                            // Request ad safely
+                            loadAd(AdRequest.Builder().build())
                         }
-                        // Request test ad
-                        loadAd(AdRequest.Builder().build())
+                    } catch (t: Throwable) {
+                        t.printStackTrace()
+                        android.view.View(ctx).apply {
+                            post { isAdmobFailed = true }
+                        }
                     }
                 },
-                update = { adView ->
+                update = { _ ->
                     // Optional update block
                 }
             )
