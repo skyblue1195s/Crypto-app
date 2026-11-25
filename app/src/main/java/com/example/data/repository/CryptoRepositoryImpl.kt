@@ -14,9 +14,11 @@ import com.example.domain.model.ImpactLevel
 import com.example.domain.model.MarketEvent
 import com.example.domain.model.NewsArticle
 import com.example.domain.repository.CryptoRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -39,8 +41,9 @@ class CryptoRepositoryImpl(
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 seedEventsIfEmpty()
-            } catch (e: Exception) {
-                e.printStackTrace()
+            } catch (t: Throwable) {
+                if (t is CancellationException) throw t
+                t.printStackTrace()
             }
         }
     }
@@ -50,6 +53,9 @@ class CryptoRepositoryImpl(
         newsDao.getAllNews().collect { cached ->
             emit(cached.map { it.toDomain() })
         }
+    }.catch { t ->
+        t.printStackTrace()
+        emit(emptyList())
     }.flowOn(Dispatchers.IO)
 
     // Synchronously fetch and refresh news, updating DB
@@ -77,8 +83,9 @@ class CryptoRepositoryImpl(
                     newsDao.insertNews(entities)
                 }
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } catch (t: Throwable) {
+            if (t is CancellationException) throw t
+            t.printStackTrace()
             // We do not crash; offline cache continues to serve data
         }
     }
@@ -87,6 +94,9 @@ class CryptoRepositoryImpl(
         eventDao.getAllEvents().collect { cached ->
             emit(cached.map { it.toDomain() })
         }
+    }.catch { t ->
+        t.printStackTrace()
+        emit(emptyList())
     }.flowOn(Dispatchers.IO)
 
     override fun getCoinPrices(): Flow<Map<String, Pair<Double, Double>>> = flow {
@@ -99,8 +109,9 @@ class CryptoRepositoryImpl(
                     Pair(usd, change)
                 }
                 emit(mapped)
-            } catch (e: Exception) {
-                e.printStackTrace()
+            } catch (t: Throwable) {
+                if (t is CancellationException) throw t
+                t.printStackTrace()
                 // Emit placeholder baseline prices on failure so layout doesn't break
                 emit(
                     mapOf(
@@ -115,9 +126,17 @@ class CryptoRepositoryImpl(
             // Poll prices every 60 seconds
             kotlinx.coroutines.delay(60000)
         }
+    }.catch { t ->
+        t.printStackTrace()
     }.flowOn(Dispatchers.IO)
 
-    override fun getWatchlist(): Flow<List<WatchlistItemEntity>> = watchlistDao.getWatchlist().flowOn(Dispatchers.IO)
+    override fun getWatchlist(): Flow<List<WatchlistItemEntity>> =
+        watchlistDao.getWatchlist()
+            .catch { t ->
+                t.printStackTrace()
+                emit(emptyList())
+            }
+            .flowOn(Dispatchers.IO)
 
     override suspend fun addToWatchlist(id: String, title: String, type: String) = withContext(Dispatchers.IO) {
         watchlistDao.insertWatchlistItem(WatchlistItemEntity(id, title, type))

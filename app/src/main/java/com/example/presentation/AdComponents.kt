@@ -27,16 +27,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import com.example.ui.theme.*
-import com.google.android.gms.ads.AdListener
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.LoadAdError
 import kotlinx.coroutines.delay
-
-// AdMob Unit ID for Banner (Using User Publisher ID)
-private const val ADMOB_TEST_BANNER_ID = "ca-app-pub-1887434028195350/6300978111"
 
 data class CustomPromoAd(
     val title: String,
@@ -87,57 +79,17 @@ val promoAdPool = listOf(
 fun AdBanner(
     viewModel: CryptoViewModel,
     modifier: Modifier = Modifier,
-    marginDp: Int = 8 // Customizable margin/padding parameter
+    marginDp: Int = 8
 ) {
-    var isAdmobFailed by remember { mutableStateOf(false) }
-    val context = LocalContext.current
     val language by viewModel.language.collectAsState()
 
-    // Column to wrap the ad with custom margin spacing
     Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = marginDp.dp, vertical = (marginDp / 2).dp)
             .testTag("ads_container")
     ) {
-        if (!isAdmobFailed) {
-            // Live AdMob Banner Wrap
-            AndroidView(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(55.dp)
-                    .background(CryptoSurface, RoundedCornerShape(8.dp))
-                    .clip(RoundedCornerShape(8.dp)),
-                factory = { ctx ->
-                    try {
-                        com.google.android.gms.ads.AdView(ctx).apply {
-                            setAdSize(AdSize.BANNER)
-                            adUnitId = ADMOB_TEST_BANNER_ID
-                            adListener = object : AdListener() {
-                                override fun onAdFailedToLoad(error: LoadAdError) {
-                                    super.onAdFailedToLoad(error)
-                                    // Fallback immediately if Google Mobile Ads service fails to fetch
-                                    isAdmobFailed = true
-                                }
-                            }
-                            // Request ad safely
-                            loadAd(AdRequest.Builder().build())
-                        }
-                    } catch (t: Throwable) {
-                        t.printStackTrace()
-                        android.view.View(ctx).apply {
-                            post { isAdmobFailed = true }
-                        }
-                    }
-                },
-                update = { _ ->
-                    // Optional update block
-                }
-            )
-        } else {
-            // Elegant premium Custom Fallback Promotional Banner
-            CustomPromoBanner(language = language)
-        }
+        CustomPromoBanner(language = language)
     }
 }
 

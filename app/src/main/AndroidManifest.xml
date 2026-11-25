@@ -5,15 +5,6 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission
-        android:name="android.permission.ACCESS_ADSERVICES_AD_ID"
-        tools:node="remove" />
-    <uses-permission
-        android:name="android.permission.ACCESS_ADSERVICES_ATTRIBUTION"
-        tools:node="remove" />
-    <uses-permission
-        android:name="android.permission.ACCESS_ADSERVICES_TOPICS"
-        tools:node="remove" />
 
     <application
         android:allowBackup="true"
@@ -43,15 +34,6 @@
                 <action android:name="com.example.ACTION_SHOW_EVENT_NOTIFICATION" />
             </intent-filter>
         </receiver>
-
-        <!-- Google AdMob Metadata (Using User Publisher ID) -->
-        <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-1887434028195350~3347511713"/>
-
-        <property
-            android:name="android.adservices.AD_SERVICES_CONFIG"
-            tools:node="remove" />
     </application>
 
 </manifest>

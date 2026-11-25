@@ -55,6 +55,27 @@ fun MainScreen(viewModel: CryptoViewModel) {
     val adsEnabled by viewModel.adsEnabled.collectAsState()
     val adsMargin by viewModel.adsMargin.collectAsState()
     val language by viewModel.language.collectAsState()
+    val btcAlertsEnabled by viewModel.btcAlertsEnabled.collectAsState()
+
+    val startupPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { _ -> }
+
+    LaunchedEffect(Unit) {
+        if (btcAlertsEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            try {
+                if (ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.POST_NOTIFICATIONS
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    startupPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            } catch (t: Throwable) {
+                t.printStackTrace()
+            }
+        }
+    }
 
     Scaffold(
         topBar = {

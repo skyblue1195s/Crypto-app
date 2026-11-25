@@ -27,39 +27,6 @@ class MainActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
 
-    // AdMob banner is currently hidden; skip MobileAds initialization on startup
-    // try {
-    //     com.google.android.gms.ads.MobileAds.initialize(this) {}
-    // } catch (t: Throwable) {
-    //     t.printStackTrace()
-    // }
-
-    // Initialize notification channels and periodic BTC worker
-    try {
-        com.example.notification.NotificationHelper.createNotificationChannel(this)
-        val prefs = getSharedPreferences("crypto_prefs", MODE_PRIVATE)
-        if (prefs.getBoolean("btc_alerts_enabled", true)) {
-            com.example.worker.BtcPriceAlertWorker.schedule(this)
-        }
-    } catch (t: Throwable) {
-        t.printStackTrace()
-    }
-
-    // Request notification permission on Android 13+ (API 33+) if not granted
-    try {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            if (androidx.core.content.ContextCompat.checkSelfPermission(
-                    this,
-                    android.Manifest.permission.POST_NOTIFICATIONS
-                ) != android.content.pm.PackageManager.PERMISSION_GRANTED
-            ) {
-                requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 101)
-            }
-        }
-    } catch (t: Throwable) {
-        t.printStackTrace()
-    }
-
     // 1. Build DB DAOs
     val db = AppDatabase.getDatabase(applicationContext)
 
