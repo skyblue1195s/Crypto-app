@@ -17,7 +17,6 @@ import com.example.presentation.CryptoViewModel
 import com.example.presentation.MainScreen
 import com.example.ui.theme.MyApplicationTheme
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -31,9 +30,7 @@ class MainActivity : ComponentActivity() {
     val db = AppDatabase.getDatabase(applicationContext)
 
     // 2. Build Moshi and Retrofit Services
-    val moshi = Moshi.Builder()
-        .addLast(KotlinJsonAdapterFactory())
-        .build()
+    val moshi = Moshi.Builder().build()
 
     val okHttpClient = OkHttpClient.Builder().build()
 

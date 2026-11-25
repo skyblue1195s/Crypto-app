@@ -9,7 +9,6 @@ import androidx.work.WorkerParameters
 import com.example.data.remote.CoinGeckoService
 import com.example.notification.NotificationHelper
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -32,9 +31,7 @@ class BtcPriceAlertWorker(
         val lastPrice = prefs.getFloat("last_btc_price", 0.0f).toDouble()
 
         return try {
-            val moshi = Moshi.Builder()
-                .addLast(KotlinJsonAdapterFactory())
-                .build()
+            val moshi = Moshi.Builder().build()
 
             val okHttpClient = OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS)

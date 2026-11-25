@@ -19,7 +19,6 @@ import com.example.notification.NotificationHelper
 import com.example.worker.BtcPriceAlertWorker
 import kotlin.math.abs
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

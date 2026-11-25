@@ -86,9 +86,7 @@ class ExampleUnitTest {
 
     @Test
     fun testMoshiNewsAndCoinGeckoParsing() {
-        val moshi = com.squareup.moshi.Moshi.Builder()
-            .addLast(com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory())
-            .build()
+        val moshi = com.squareup.moshi.Moshi.Builder().build()
 
         val newsJson = """
             {
