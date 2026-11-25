@@ -71,8 +71,9 @@ class BtcPriceAlertWorker(
             }
 
             Result.success()
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } catch (t: Throwable) {
+            if (t is kotlinx.coroutines.CancellationException) throw t
+            t.printStackTrace()
             Result.retry()
         }
     }

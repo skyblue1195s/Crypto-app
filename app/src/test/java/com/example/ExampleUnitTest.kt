@@ -83,4 +83,53 @@ class ExampleUnitTest {
         assertEquals("3.3%", eco.previousValue)
         assertEquals("3.0%", eco.actualValue)
     }
+
+    @Test
+    fun testMoshiNewsAndCoinGeckoParsing() {
+        val moshi = com.squareup.moshi.Moshi.Builder()
+            .addLast(com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory())
+            .build()
+
+        val newsJson = """
+            {
+              "Data": [
+                {
+                  "id": "123",
+                  "published_on": 1700000000,
+                  "imageurl": null,
+                  "title": "BTC Surges",
+                  "url": "https://example.com",
+                  "source": "CoinDesk",
+                  "body": "Body text"
+                }
+              ]
+            }
+        """.trimIndent()
+        val newsAdapter = moshi.adapter(com.example.data.remote.NewsResponseDto::class.java)
+        val parsed = newsAdapter.fromJson(newsJson)
+        assertNotNull(parsed)
+        assertEquals(1, parsed?.data?.size)
+        assertEquals("BTC Surges", parsed?.data?.first()?.title)
+
+        val type = com.squareup.moshi.Types.newParameterizedType(
+            Map::class.java,
+            String::class.java,
+            com.squareup.moshi.Types.newParameterizedType(
+                Map::class.java,
+                String::class.java,
+                Double::class.javaObjectType
+            )
+        )
+        val geckoAdapter = moshi.adapter<Map<String, Map<String, Double>>>(type)
+        val prices = geckoAdapter.fromJson("""{"bitcoin":{"usd":95000.5,"usd_24h_change":2.5}}""")
+        assertEquals(95000.5, prices?.get("bitcoin")?.get("usd") ?: 0.0, 0.01)
+    }
+
+    @Test
+    fun testTranslationsAndFormatters() {
+        assertEquals("CRYPTO NEWS", com.example.presentation.Translations.getString("app_title", "en"))
+        assertEquals("TIN TỨC CRYPTO", com.example.presentation.Translations.getString("app_title", "vi"))
+        assertTrue(com.example.presentation.formatTimestamp(1700000000000L).isNotEmpty())
+        assertTrue(com.example.presentation.formatEventTime(1700000000000L, "GMT+7").contains("(GMT+7)"))
+    }
 }

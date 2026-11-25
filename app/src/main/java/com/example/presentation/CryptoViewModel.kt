@@ -162,35 +162,40 @@ class CryptoViewModel(
 
     private fun observeBtcPriceChanges() {
         viewModelScope.launch {
-            coinPrices.collect { prices ->
-                val btcPair = prices["bitcoin"]
-                if (btcPair != null) {
-                    val current = btcPair.first
-                    _currentBtcPrice.value = current
+            try {
+                coinPrices.collect { prices ->
+                    val btcPair = prices["bitcoin"]
+                    if (btcPair != null) {
+                        val current = btcPair.first
+                        _currentBtcPrice.value = current
 
-                    var baseline = _lastBtcPrice.value.toDouble()
-                    if (baseline <= 0.0 && current > 0.0) {
-                        baseline = current
-                        _lastBtcPrice.value = current.toFloat()
-                        prefs.edit().putFloat("last_btc_price", current.toFloat()).apply()
-                    } else if (_btcAlertsEnabled.value && current > 0.0 && baseline > 0.0) {
-                        val pctChange = ((current - baseline) / baseline) * 100.0
-                        val threshold = _btcAlertThreshold.value.toDouble()
-                        val now = System.currentTimeMillis()
-                        // Throttle in-app price alerts to at most once every 5 minutes
-                        if (abs(pctChange) >= threshold && (now - lastInAppAlertTime > 5 * 60 * 1000L)) {
-                            lastInAppAlertTime = now
-                            NotificationHelper.showBtcPriceAlert(
-                                context = getApplication(),
-                                currentPrice = current,
-                                previousPrice = baseline,
-                                changePct = pctChange
-                            )
+                        var baseline = _lastBtcPrice.value.toDouble()
+                        if (baseline <= 0.0 && current > 0.0) {
+                            baseline = current
                             _lastBtcPrice.value = current.toFloat()
                             prefs.edit().putFloat("last_btc_price", current.toFloat()).apply()
+                        } else if (_btcAlertsEnabled.value && current > 0.0 && baseline > 0.0) {
+                            val pctChange = ((current - baseline) / baseline) * 100.0
+                            val threshold = _btcAlertThreshold.value.toDouble()
+                            val now = System.currentTimeMillis()
+                            // Throttle in-app price alerts to at most once every 5 minutes
+                            if (abs(pctChange) >= threshold && (now - lastInAppAlertTime > 5 * 60 * 1000L)) {
+                                lastInAppAlertTime = now
+                                NotificationHelper.showBtcPriceAlert(
+                                    context = getApplication(),
+                                    currentPrice = current,
+                                    previousPrice = baseline,
+                                    changePct = pctChange
+                                )
+                                _lastBtcPrice.value = current.toFloat()
+                                prefs.edit().putFloat("last_btc_price", current.toFloat()).apply()
+                            }
                         }
                     }
                 }
+            } catch (t: Throwable) {
+                if (t is kotlinx.coroutines.CancellationException) throw t
+                t.printStackTrace()
             }
         }
     }

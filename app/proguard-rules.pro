@@ -16,6 +16,17 @@
 # debugging stack traces.
 #-keepattributes SourceFile,LineNumberTable
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Keep Room database implementations and empty constructors (WorkManager / AppDatabase)
+-keepclassmembers class * extends androidx.room.RoomDatabase {
+    <init>();
+}
+-keepclassmembers class * extends androidx.work.InputMerger {
+    <init>();
+}
+-keepclassmembers class * extends androidx.work.ListenableWorker {
+    public <init>(android.content.Context, androidx.work.WorkerParameters);
+}
+-keep public class * extends android.app.Activity
+-keep public class com.example.MainActivity { *; }
+-keepattributes Signature, InnerClasses, EnclosingMethod
+-keepattributes RuntimeVisibleAnnotations, RuntimeInvisibleAnnotations
