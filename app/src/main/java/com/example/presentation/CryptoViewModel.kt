@@ -88,7 +88,7 @@ class CryptoViewModel(
 
     private var lastInAppAlertTime = 0L
 
-    private val _adsEnabled = MutableStateFlow(true)
+    private val _adsEnabled = MutableStateFlow(false)
     val adsEnabled = _adsEnabled.asStateFlow()
 
     private val _adsMargin = MutableStateFlow(12) // Default margin 12dp

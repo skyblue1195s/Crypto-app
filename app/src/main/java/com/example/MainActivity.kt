@@ -27,12 +27,12 @@ class MainActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
 
-    // Initialize Google Mobile Ads SDK asynchronously
-    try {
-        com.google.android.gms.ads.MobileAds.initialize(this) {}
-    } catch (t: Throwable) {
-        t.printStackTrace()
-    }
+    // AdMob banner is currently hidden; skip MobileAds initialization on startup
+    // try {
+    //     com.google.android.gms.ads.MobileAds.initialize(this) {}
+    // } catch (t: Throwable) {
+    //     t.printStackTrace()
+    // }
 
     // Initialize notification channels and periodic BTC worker
     try {
