@@ -9,10 +9,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AdsClick
-import androidx.compose.material.icons.filled.Campaign
-import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -195,7 +191,7 @@ fun CustomPromoBanner(language: String) {
                 }
                 Spacer(modifier = Modifier.height(4.dp))
                 Icon(
-                    imageVector = Icons.Filled.Campaign,
+                    imageVector = AppIcons.Campaign,
                     contentDescription = "Ad Icon",
                     tint = CryptoGold,
                     modifier = Modifier.size(20.dp)
@@ -250,7 +246,7 @@ fun CustomPromoBanner(language: String) {
                 )
                 Spacer(modifier = Modifier.width(2.dp))
                 Icon(
-                    imageVector = Icons.Filled.OpenInNew,
+                    imageVector = AppIcons.OpenInNew,
                     contentDescription = "Go",
                     tint = CryptoDarkBg,
                     modifier = Modifier.size(10.dp)

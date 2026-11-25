@@ -85,7 +85,7 @@ fun MainScreen(viewModel: CryptoViewModel) {
                     title = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                imageVector = Icons.Filled.TrendingUp,
+                                imageVector = AppIcons.TrendingUp,
                                 contentDescription = "Logo",
                                 tint = CryptoGold,
                                 modifier = Modifier.size(28.dp)
@@ -125,7 +125,7 @@ fun MainScreen(viewModel: CryptoViewModel) {
                     label = { Text(Translations.getString("tab_news", language), fontWeight = FontWeight.Medium) },
                     icon = {
                         Icon(
-                            imageVector = if (selectedTab == 0) Icons.Filled.Feed else Icons.Outlined.Feed,
+                            imageVector = if (selectedTab == 0) AppIcons.FeedFilled else AppIcons.FeedOutlined,
                             contentDescription = "News"
                         )
                     },
@@ -144,7 +144,7 @@ fun MainScreen(viewModel: CryptoViewModel) {
                     label = { Text(Translations.getString("tab_calendar", language), fontWeight = FontWeight.Medium) },
                     icon = {
                         Icon(
-                            imageVector = if (selectedTab == 1) Icons.Filled.CalendarMonth else Icons.Outlined.CalendarMonth,
+                            imageVector = if (selectedTab == 1) AppIcons.CalendarMonthFilled else AppIcons.CalendarMonthOutlined,
                             contentDescription = "Calendar"
                         )
                     },
@@ -163,7 +163,7 @@ fun MainScreen(viewModel: CryptoViewModel) {
                     label = { Text(Translations.getString("tab_watchlist", language), fontWeight = FontWeight.Medium) },
                     icon = {
                         Icon(
-                            imageVector = if (selectedTab == 2) Icons.Filled.Star else Icons.Outlined.StarOutline,
+                            imageVector = if (selectedTab == 2) Icons.Filled.Star else AppIcons.StarOutline,
                             contentDescription = "Watchlist"
                         )
                     },
@@ -264,7 +264,7 @@ fun PriceTickerRow(viewModel: CryptoViewModel) {
             ) {
                 if (isBtc && btcAlertsEnabled) {
                     Icon(
-                        imageVector = Icons.Filled.NotificationsActive,
+                        imageVector = AppIcons.NotificationsActive,
                         contentDescription = "BTC Price Alert Active",
                         tint = CryptoGold,
                         modifier = Modifier.size(13.dp)
@@ -377,7 +377,7 @@ fun NewsTab(viewModel: CryptoViewModel) {
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
-                        imageVector = Icons.Outlined.Article,
+                        imageVector = AppIcons.ArticleOutlined,
                         contentDescription = "Empty",
                         tint = CryptoTextSecondary,
                         modifier = Modifier.size(64.dp)
@@ -582,7 +582,7 @@ fun CalendarTab(viewModel: CryptoViewModel) {
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
-                        imageVector = Icons.Outlined.EventBusy,
+                        imageVector = AppIcons.EventBusyOutlined,
                         contentDescription = "Empty",
                         tint = CryptoTextSecondary,
                         modifier = Modifier.size(64.dp)
@@ -648,7 +648,7 @@ fun WatchlistTab(viewModel: CryptoViewModel) {
                     modifier = Modifier.padding(24.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.StarOutline,
+                        imageVector = AppIcons.StarOutline,
                         contentDescription = "Empty",
                         tint = CryptoTextSecondary,
                         modifier = Modifier.size(64.dp)
@@ -772,7 +772,7 @@ fun SettingsTab(viewModel: CryptoViewModel) {
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = Icons.Filled.TrendingUp,
+                                imageVector = AppIcons.TrendingUp,
                                 contentDescription = "BTC",
                                 tint = CryptoGold,
                                 modifier = Modifier.size(22.dp)
@@ -951,7 +951,7 @@ fun SettingsTab(viewModel: CryptoViewModel) {
                                 border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Filled.PinDrop,
+                                    imageVector = AppIcons.PinDrop,
                                     contentDescription = "Reset",
                                     tint = CryptoGold,
                                     modifier = Modifier.size(16.dp)
@@ -982,7 +982,7 @@ fun SettingsTab(viewModel: CryptoViewModel) {
                                 colors = ButtonDefaults.buttonColors(containerColor = CryptoGold)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Filled.NotificationsActive,
+                                    imageVector = AppIcons.NotificationsActive,
                                     contentDescription = "Test",
                                     tint = CryptoDarkBg,
                                     modifier = Modifier.size(16.dp)
@@ -1190,7 +1190,7 @@ fun SettingsTab(viewModel: CryptoViewModel) {
                     colors = ButtonDefaults.buttonColors(containerColor = CryptoGold),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Icon(Icons.Filled.Sync, contentDescription = "Sync", tint = CryptoDarkBg)
+                    Icon(AppIcons.Sync, contentDescription = "Sync", tint = CryptoDarkBg)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(Translations.getString("sync_button", language), color = CryptoDarkBg, fontWeight = FontWeight.Bold)
                 }
@@ -1210,9 +1210,9 @@ fun EventCard(
     val language by viewModel.language.collectAsState()
 
     val typeIcon = when (event) {
-        is AirdropEvent -> Icons.Filled.CardGiftcard
-        is FedMeetingEvent -> Icons.Filled.Balance
-        is EconomicDataEvent -> Icons.Filled.Analytics
+        is AirdropEvent -> AppIcons.CardGiftcard
+        is FedMeetingEvent -> AppIcons.Balance
+        is EconomicDataEvent -> AppIcons.Analytics
     }
 
     val iconColor = when (event) {
@@ -1285,7 +1285,7 @@ fun EventCard(
 
                     // Watchlist Icon
                     Icon(
-                        imageVector = if (isWatchlisted) Icons.Filled.Star else Icons.Filled.StarBorder,
+                        imageVector = if (isWatchlisted) Icons.Filled.Star else AppIcons.StarOutline,
                         contentDescription = "Watchlist Toggle",
                         tint = if (isWatchlisted) CryptoGold else CryptoTextSecondary,
                         modifier = Modifier
@@ -1374,7 +1374,7 @@ fun CountdownTimer(targetTimeMs: Long, language: String) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (!isOver) {
                 Icon(
-                    imageVector = Icons.Filled.Timer,
+                    imageVector = AppIcons.Timer,
                     contentDescription = "Timer",
                     tint = ImpactSuccess,
                     modifier = Modifier.size(12.dp)
@@ -1514,7 +1514,7 @@ fun EventDetailDialog(
                         modifier = Modifier.weight(1f)
                     ) {
                         Icon(
-                            imageVector = if (isWatchlisted) Icons.Filled.Star else Icons.Filled.StarBorder,
+                            imageVector = if (isWatchlisted) Icons.Filled.Star else AppIcons.StarOutline,
                             contentDescription = "Watchlist",
                             tint = if (isWatchlisted) CryptoGold else CryptoDarkBg
                         )
@@ -1539,7 +1539,7 @@ fun EventDetailDialog(
                         border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.dp),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Icon(Icons.Filled.Language, contentDescription = "Source", tint = CryptoGold)
+                        Icon(AppIcons.Language, contentDescription = "Source", tint = CryptoGold)
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(Translations.getString("source", language), color = CryptoGold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
