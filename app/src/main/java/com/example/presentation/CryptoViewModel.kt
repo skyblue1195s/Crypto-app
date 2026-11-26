@@ -144,7 +144,7 @@ class CryptoViewModel(
 
     // Watchlist items
     val watchlistItems: StateFlow<List<WatchlistItemEntity>> = repository.getWatchlist()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     init {
         refreshNewsFeed()

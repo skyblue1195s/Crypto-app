@@ -38,6 +38,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.example.data.local.WatchlistItemEntity
 import com.example.domain.model.*
 import com.example.ui.theme.*
@@ -1205,7 +1206,8 @@ fun EventCard(
     viewModel: CryptoViewModel,
     onClick: () -> Unit
 ) {
-    val isWatchlisted = viewModel.isEventWatchlisted(event.id)
+    val watchlistItems by viewModel.watchlistItems.collectAsState()
+    val isWatchlisted = watchlistItems.any { it.id == event.id }
     val selectedTimezone by viewModel.selectedTimezone.collectAsState()
     val language by viewModel.language.collectAsState()
 
@@ -1333,7 +1335,7 @@ fun EventCard(
 }
 
 @Composable
-fun CountdownTimer(targetTimeMs: Long, language: String) {
+fun CountdownTimer(targetTimeMs: Long, language: String, isLarge: Boolean = false) {
     var timeLeftMs by remember { mutableStateOf(targetTimeMs - System.currentTimeMillis()) }
 
     LaunchedEffect(key1 = targetTimeMs) {
@@ -1368,8 +1370,8 @@ fun CountdownTimer(targetTimeMs: Long, language: String) {
 
     Box(
         modifier = Modifier
-            .background(boxColor, RoundedCornerShape(4.dp))
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .background(boxColor, RoundedCornerShape(if (isLarge) 8.dp else 4.dp))
+            .padding(horizontal = if (isLarge) 12.dp else 8.dp, vertical = if (isLarge) 6.dp else 4.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (!isOver) {
@@ -1377,14 +1379,14 @@ fun CountdownTimer(targetTimeMs: Long, language: String) {
                     imageVector = AppIcons.Timer,
                     contentDescription = "Timer",
                     tint = ImpactSuccess,
-                    modifier = Modifier.size(12.dp)
+                    modifier = Modifier.size(if (isLarge) 16.dp else 12.dp)
                 )
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(if (isLarge) 6.dp else 4.dp))
             }
             Text(
                 text = text,
                 color = textColor,
-                fontSize = 11.sp,
+                fontSize = if (isLarge) 14.sp else 11.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace
             )
@@ -1399,23 +1401,30 @@ fun EventDetailDialog(
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
-    val isWatchlisted = viewModel.isEventWatchlisted(event.id)
+    val watchlistItems by viewModel.watchlistItems.collectAsState()
+    val isWatchlisted = watchlistItems.any { it.id == event.id }
     val selectedTimezone by viewModel.selectedTimezone.collectAsState()
     val language by viewModel.language.collectAsState()
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Card(
             colors = CardDefaults.cardColors(containerColor = CryptoSurface),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(16.dp),
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+                .fillMaxWidth(0.94f)
+                .widthIn(max = 560.dp)
+                .heightIn(max = 680.dp)
+                .testTag("event_detail_dialog")
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -1427,9 +1436,12 @@ fun EventDetailDialog(
                         color = CryptoGold,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace,
-                        fontSize = 12.sp
+                        fontSize = 14.sp
                     )
-                    IconButton(onClick = onDismiss) {
+                    IconButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.testTag("event_detail_close_button")
+                    ) {
                         Icon(Icons.Filled.Close, contentDescription = "Close", tint = CryptoTextSecondary)
                     }
                 }
@@ -1437,7 +1449,8 @@ fun EventDetailDialog(
                 Text(
                     text = event.title,
                     color = CryptoTextPrimary,
-                    fontSize = 18.sp,
+                    fontSize = 22.sp,
+                    lineHeight = 28.sp,
                     fontWeight = FontWeight.Bold
                 )
 
@@ -1447,8 +1460,8 @@ fun EventDetailDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
-                        Text(Translations.getString("impact_label", language), color = CryptoTextSecondary, fontSize = 11.sp)
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(Translations.getString("impact_label", language), color = CryptoTextSecondary, fontSize = 13.sp)
                         val impactColor = when (event.impact) {
                             ImpactLevel.HIGH -> ImpactHigh
                             ImpactLevel.MEDIUM -> ImpactMedium
@@ -1463,10 +1476,10 @@ fun EventDetailDialog(
                             text = "${impactDisplay.uppercase()} ${Translations.getString("impact", language).uppercase()}",
                             color = impactColor,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
+                            fontSize = 16.sp
                         )
                     }
-                    CountdownTimer(targetTimeMs = event.timestamp, language = language)
+                    CountdownTimer(targetTimeMs = event.timestamp, language = language, isLarge = true)
                 }
 
                 HorizontalDivider(color = CryptoSurfaceVariant)
@@ -1504,14 +1517,17 @@ fun EventDetailDialog(
                 // Actions buttons
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Button(
                         onClick = { viewModel.toggleWatchlist(event) },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (isWatchlisted) CryptoSurfaceVariant else CryptoGold
                         ),
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .heightIn(min = 48.dp)
+                            .testTag("event_detail_watchlist_button")
                     ) {
                         Icon(
                             imageVector = if (isWatchlisted) Icons.Filled.Star else AppIcons.StarOutline,
@@ -1523,7 +1539,9 @@ fun EventDetailDialog(
                             text = if (isWatchlisted) Translations.getString("cancel_remind", language) else Translations.getString("remind_me", language),
                             color = if (isWatchlisted) CryptoTextPrimary else CryptoDarkBg,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp
+                            fontSize = 14.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
 
@@ -1536,12 +1554,22 @@ fun EventDetailDialog(
                                 e.printStackTrace()
                             }
                         },
-                        border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.dp),
-                        modifier = Modifier.weight(1f)
+                        border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(width = 1.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .heightIn(min = 48.dp)
+                            .testTag("event_detail_source_button")
                     ) {
                         Icon(AppIcons.Language, contentDescription = "Source", tint = CryptoGold)
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text(Translations.getString("source", language), color = CryptoGold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = Translations.getString("source", language),
+                            color = CryptoGold,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
                 }
             }
@@ -1551,9 +1579,9 @@ fun EventDetailDialog(
 
 @Composable
 fun DetailItem(label: String, value: String) {
-    Column {
-        Text(text = label, color = CryptoTextSecondary, fontSize = 11.sp)
-        Text(text = value, color = CryptoTextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(text = label, color = CryptoTextSecondary, fontSize = 13.sp)
+        Text(text = value, color = CryptoTextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Medium)
     }
 }
 
