@@ -49,6 +49,9 @@ class CryptoViewModel(
     private val _eventFilterImpact = MutableStateFlow<ImpactLevel?>(null)
     val eventFilterImpact = _eventFilterImpact.asStateFlow()
 
+    private val _eventSearchQuery = MutableStateFlow("")
+    val eventSearchQuery = _eventSearchQuery.asStateFlow()
+
     // Settings States
     private val prefs = application.getSharedPreferences("crypto_prefs", Context.MODE_PRIVATE)
 
@@ -125,6 +128,22 @@ class CryptoViewModel(
         }
         .combine(_eventFilterImpact) { list, impact ->
             if (impact == null) list else list.filter { it.impact == impact }
+        }
+        .combine(_eventSearchQuery) { list, query ->
+            val q = query.trim()
+            if (q.isEmpty()) list else list.filter { event ->
+                event.title.contains(q, ignoreCase = true) || when (event) {
+                    is com.example.domain.model.AirdropEvent ->
+                        event.projectName.contains(q, ignoreCase = true) ||
+                            (event.estimatedValue?.contains(q, ignoreCase = true) == true)
+                    is com.example.domain.model.FedMeetingEvent ->
+                        event.meetingType.contains(q, ignoreCase = true) ||
+                            (event.expectedRateChange?.contains(q, ignoreCase = true) == true)
+                    is com.example.domain.model.EconomicDataEvent ->
+                        event.indicator.contains(q, ignoreCase = true) ||
+                            event.country.contains(q, ignoreCase = true)
+                }
+            }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -225,6 +244,11 @@ class CryptoViewModel(
     // Set event impact filter
     fun setEventImpactFilter(impact: ImpactLevel?) {
         _eventFilterImpact.value = impact
+    }
+
+    // Set calendar event search query
+    fun setEventSearch(query: String) {
+        _eventSearchQuery.value = query
     }
 
     // Select an event for detail view

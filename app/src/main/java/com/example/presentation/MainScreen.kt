@@ -18,6 +18,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -30,9 +32,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -304,6 +308,7 @@ fun NewsTab(viewModel: CryptoViewModel) {
     val searchVal by viewModel.newsSearchQuery.collectAsState()
     val selectedCoinFilter by viewModel.newsFilterCoin.collectAsState()
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
     val language by viewModel.language.collectAsState()
 
     val coins = listOf("All", "BTC", "ETH", "SOL", "ADA", "BNB")
@@ -322,6 +327,9 @@ fun NewsTab(viewModel: CryptoViewModel) {
                     }
                 }
             },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = CryptoSurface,
                 unfocusedContainerColor = CryptoSurface,
@@ -487,19 +495,56 @@ fun NewsTab(viewModel: CryptoViewModel) {
 @Composable
 fun CalendarTab(viewModel: CryptoViewModel) {
     val events by viewModel.marketEvents.collectAsState()
+    val searchVal by viewModel.eventSearchQuery.collectAsState()
     val selectedType by viewModel.eventFilterType.collectAsState()
     val selectedImpact by viewModel.eventFilterImpact.collectAsState()
     val language by viewModel.language.collectAsState()
+    val focusManager = LocalFocusManager.current
 
     val types = listOf("All", "Airdrops" to "AIRDROP", "Fed/FOMC" to "FED_MEETING", "Macro" to "ECONOMIC")
 
     Column(modifier = Modifier.fillMaxSize()) {
+        // Calendar search bar
+        TextField(
+            value = searchVal,
+            onValueChange = { viewModel.setEventSearch(it) },
+            placeholder = { Text(Translations.getString("calendar_search_placeholder", language), color = CryptoTextSecondary) },
+            leadingIcon = { Icon(Icons.Filled.Search, contentDescription = "Search", tint = CryptoGold) },
+            trailingIcon = {
+                if (searchVal.isNotEmpty()) {
+                    IconButton(
+                        onClick = { viewModel.setEventSearch("") },
+                        modifier = Modifier.testTag("calendar_search_clear")
+                    ) {
+                        Icon(Icons.Filled.Clear, contentDescription = "Clear", tint = CryptoGold)
+                    }
+                }
+            },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = CryptoSurface,
+                unfocusedContainerColor = CryptoSurface,
+                focusedTextColor = CryptoTextPrimary,
+                unfocusedTextColor = CryptoTextPrimary,
+                cursorColor = CryptoGold,
+                focusedIndicatorColor = CryptoGold,
+                unfocusedIndicatorColor = Color.Transparent
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .testTag("calendar_search_input")
+        )
+
         // Horizontal Event Type Quick Chips
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 12.dp, vertical = 8.dp),
+                .padding(horizontal = 12.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             types.forEach { item ->
